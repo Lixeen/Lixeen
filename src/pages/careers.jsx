@@ -17,12 +17,12 @@ const G = `
   --sans:'Anek Devanagari',system-ui,sans-serif;
   --r-pill:999px; --r-card:16px; --r-sm:8px;
 }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body { font-family: var(--sans); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 
 .hero { padding: 160px 40px 100px; text-align: center; position: relative; overflow: hidden; background: var(--bg); }
-.hero-orb { position: absolute; top: -10%; left: 50%; transform: translateX(-50%); width: 900px; height: 500px; border-radius: 50%; background: radial-gradient(ellipse at 50% 60%, rgba(200,240,38,0.15) 0%, rgba(61,187,0,0.06) 40%, transparent 80%); pointer-events: none; }
+.hero-orb { position: absolute; top: -10%; left: 50%; transform: translateX(-50%); width: min(900px,130vw); height: min(500px,70vw); border-radius: 50%; background: radial-gradient(ellipse at 50% 60%, rgba(200,240,38,0.15) 0%, rgba(61,187,0,0.06) 40%, transparent 80%); pointer-events: none; }
 .hero-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--sub); background: #fff; border: 1px solid var(--border); border-radius: var(--r-pill); padding: 8px 18px; margin-bottom: 32px; position: relative; z-index: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
@@ -153,7 +153,7 @@ body { font-family: var(--sans); color: var(--text); background: var(--bg); -web
 .earnings-stat-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
 
 .cta-banner { background: linear-gradient(135deg, #f0f9e6 0%, #f5f0ff 50%, #f0f9e6 100%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 40px; text-align: center; position: relative; overflow: hidden; }
-.cta-banner-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 600px; height: 300px; border-radius: 50%; background: radial-gradient(ellipse, rgba(61,187,0,0.12) 0%, transparent 70%); pointer-events: none; }
+.cta-banner-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: min(600px,100vw); height: min(300px,50vw); border-radius: 50%; background: radial-gradient(ellipse, rgba(61,187,0,0.12) 0%, transparent 70%); pointer-events: none; }
 .cta-banner h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; color: var(--text); letter-spacing: -0.025em; margin-bottom: 16px; position: relative; z-index: 1; }
 .cta-banner h2 span { color: var(--accent); }
 .cta-banner p { font-size: 17px; color: var(--sub); margin-bottom: 40px; position: relative; z-index: 1; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.65; }
@@ -183,15 +183,26 @@ body { font-family: var(--sans); color: var(--text); background: var(--bg); -web
 @media (max-width: 600px) {
   .perks-grid { grid-template-columns: 1fr; }
   .discipline-grid { grid-template-columns: 1fr; }
-  .hero { padding: 120px 20px 80px; }
-  .section { padding: 72px 20px; }
+  .hero { padding: 110px 20px 80px; }
+  .hero-h1 { font-size: clamp(34px, 9vw, 56px); max-width: 100%; }
+  .hero-sub { max-width: 100%; }
+  .hero-stats { flex-wrap: wrap; gap: 0; width: 100%; }
+  .hero-stat { flex: 1 1 50%; border-right: none !important; border-bottom: 1px solid var(--border); }
+  .hero-stat:nth-child(odd) { border-right: 1px solid var(--border) !important; }
+  .hero-stat-div { display: none; }
+  .section { padding: 56px 20px; }
   .cta-banner { padding: 60px 20px; }
   .cta-actions { flex-direction: column; align-items: stretch; }
   .cta-actions > * { width: 100%; justify-content: center; }
-  .mode-toggle { max-width: 100%; margin: 0 20px 48px; }
+  .mode-toggle { max-width: 100%; margin: 0 0 40px; }
   .earnings-banner { padding: 28px 24px; }
   .earnings-stats { gap: 20px; }
   .roles-panel { padding: 20px; }
+  .dept-filter { gap: 6px; }
+  .discipline-grid { grid-template-columns: 1fr; }
+  .job-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .job-arrow { align-self: flex-end; }
+  .perks-grid { grid-template-columns: 1fr; }
 }
 `;
 
