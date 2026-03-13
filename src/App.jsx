@@ -22,6 +22,7 @@ import ProtectedRoute from './pages/auth/ProtectedRoute'
 import AdminDashboard from './pages/admin'
 import NotFound from './components/not-found'
 import JobDetailPage from "./pages/job-details";
+import { GuestOnly } from './pages/auth/AuthGuard'
 
 
 
@@ -49,8 +50,8 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/project-instructions" element={<ProjectInstructions />} />
         <Route path="/companies" element={<ForCompanies />} />
-        <Route path="/login" element={<SignIn />} />
-        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/login" element={<GuestOnly><SignIn /></GuestOnly>} />
+        <Route path="/sign-up" element={<GuestOnly><SignUp /></GuestOnly>} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/cookies" element={<CookiePolicy />} />
