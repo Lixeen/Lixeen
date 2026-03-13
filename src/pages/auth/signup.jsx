@@ -31,6 +31,7 @@ const G = `
   --purple:#7c5cfc;
   --sans:'Anek Devanagari',system-ui,sans-serif;
   --r-pill:999px; --r-card:16px; --r-sm:8px;
+  --nav-h:68px;
 }
 html,body{height:100%;}
 body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column;}
@@ -38,7 +39,7 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: 68px; display: flex; align-items: center; padding: 0 40px;
+  height: var(--nav-h); display: flex; align-items: center; padding: 0 40px;
   background: rgba(255,255,255,0.96); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 var(--border);
 }
@@ -50,10 +51,26 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 .nav-text-link:hover { color: var(--text); }
 .nav-text-link span { color: var(--lime); font-weight: 600; }
 
+/* ── Main layout: fills the viewport below the fixed nav ── */
+.auth-root {
+  margin-top: var(--nav-h);
+  min-height: calc(100vh - var(--nav-h));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
 
-.auth-root{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;padding-top:68px;}
-
-.auth-left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 72px;position:relative;overflow:hidden;}
+/* ── Left panel ── */
+.auth-left {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 72px;
+  position: relative;
+  overflow: hidden;
+}
 .auth-left-orb{position:absolute;bottom:-20%;right:-15%;width:600px;height:400px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(124,92,252,0.09) 0%,rgba(61,187,0,0.06) 45%,transparent 70%);pointer-events:none;filter:blur(2px);}
 .auth-left-orb2{position:absolute;top:-5%;left:-10%;width:400px;height:300px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(61,187,0,0.06) 0%,transparent 65%);pointer-events:none;}
 .auth-left-content{position:relative;z-index:1;width:100%;max-width:420px;}
@@ -77,7 +94,17 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 .auth-trust-logos{display:flex;gap:14px;flex-wrap:wrap;}
 .auth-trust-logo{font-size:12px;font-weight:700;color:var(--sub);}
 
-.auth-right{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 72px;}
+/* ── Right panel ── */
+.auth-right {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 72px;
+  /* Allow scrolling if content overflows on small screens */
+  overflow-y: auto;
+}
 .auth-form-wrap{width:100%;max-width:420px;}
 .auth-form-title{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;margin-bottom:6px;}
 .auth-form-sub{font-size:14px;color:var(--sub);margin-bottom:32px;}
@@ -151,12 +178,17 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 .btn-resend:disabled{opacity:0.45;cursor:not-allowed;}
 .resend-msg{font-size:12px;color:var(--lime);margin-top:10px;font-weight:600;}
 
+/* ── Responsive ── */
 @media(max-width:900px){
   .auth-root{grid-template-columns:1fr;}
   .auth-left{display:none;}
-  .auth-right{padding:40px 28px;min-height:calc(100vh - 68px);}
+  .auth-right{padding:40px 28px;min-height:calc(100vh - var(--nav-h));}
   .nav{padding:0 20px;}
   .field-row-2{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .auth-right{padding:32px 20px;}
+  .auth-form-title{font-size:22px;}
 }
 `;
 
@@ -189,8 +221,6 @@ const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
 const STRENGTH_CLASSES = ["", "weak", "fair", "good", "strong"];
 
 // ── reCAPTCHA hook ─────────────────────────────────────────────────────────────
-// Dynamically injects the reCAPTCHA v2 script once per page load, then renders
-// the checkbox widget into the provided containerRef.
 function useRecaptcha(containerRef, siteKey) {
   const widgetIdRef = useRef(null);
   const [ready, setReady] = useState(false);
@@ -209,7 +239,6 @@ function useRecaptcha(containerRef, siteKey) {
     if (window.grecaptcha?.render) {
       window.grecaptcha.ready(render);
     } else {
-      // Only inject the script tag once across remounts
       if (!document.getElementById("recaptcha-script")) {
         const script = document.createElement("script");
         script.id = "recaptcha-script";
@@ -219,7 +248,6 @@ function useRecaptcha(containerRef, siteKey) {
         script.onload = () => window.grecaptcha.ready(render);
         document.head.appendChild(script);
       } else {
-        // Script exists but may still be loading — poll
         const poll = setInterval(() => {
           if (window.grecaptcha?.render) {
             clearInterval(poll);
@@ -361,7 +389,7 @@ export default function SignUp() {
     if (error) {
       submittedRef.current = false;
       setSignUpError(error.message);
-      resetCaptcha(); // let them try again
+      resetCaptcha();
       return;
     }
 
@@ -487,7 +515,6 @@ export default function SignUp() {
                 {/* ── reCAPTCHA v2 ── */}
                 <div className={`captcha-wrap${errors.captcha ? " captcha-error-border" : ""}`}>
                   <div className="captcha-label">Security check</div>
-                  {/* reCAPTCHA widget mounts here */}
                   <div ref={captchaContainerRef} />
                   <div className="captcha-note">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

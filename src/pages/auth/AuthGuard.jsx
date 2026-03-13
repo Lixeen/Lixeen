@@ -8,7 +8,7 @@ export function GuestOnly({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && session) navigate("/dashboard", { replace: true });
+    if (!loading && session) navigate("/", { replace: true });
   }, [session, loading]);
 
   if (loading || session) return null;

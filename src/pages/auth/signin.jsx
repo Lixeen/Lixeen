@@ -280,7 +280,7 @@ export default function SignIn() {
     setErrors(e);
     if (Object.keys(e).length) return;
 
-    // ── CAPTCHA CHECK ──
+    
     const captchaToken = getToken();
     if (!captchaToken) {
       setErrors(prev => ({ ...prev, captcha: "Please complete the security check before continuing." }));
@@ -295,7 +295,7 @@ export default function SignIn() {
       resetCaptcha();
     } else {
       setLoading(false);
-      navigate("/about");
+      navigate("/");
     }
   };
 
