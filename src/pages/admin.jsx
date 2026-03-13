@@ -160,7 +160,7 @@ function Toast({ msg, onDone }) {
 // Inserts a row into notifications, then calls the edge function for email.
 // userId is NOT passed to the edge fn to avoid a duplicate DB insert.
 async function sendEmailAndNotification({ userId, to, userName, type, title, message, link, emailExtras = {} }) {
-    console.log("hereeeeeee", userId)
+
     // 1. Insert notification into DB
     const { error: dbErr } = await supabase.from("notifications").insert({
         user_id: userId,
@@ -1051,7 +1051,6 @@ export default function AdminDashboard() {
         supabase.from("profiles").select("*").eq("id", user.id).single()
             .then(({ data, error }) => {
                 if (error) console.error("Admin check error:", error.message, error.code);
-                console.log("Profile data:", data);
                 setIsAdmin(data?.is_admin ?? false);
                 setChecking(false);
             });

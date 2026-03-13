@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import NavLogo from "../../components/NavLogo";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Replace with your v2 site key from https://www.google.com/recaptcha/admin
+// Type: Challenge (v2) → "I'm not a robot" Checkbox
+// ─────────────────────────────────────────────────────────────────────────────
+const RECAPTCHA_SITE_KEY = "6LcQ9IgsAAAAAI11M2zzGVC8trV80OKJrT3pvQKo";
 
 const G = `
 @import url('https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@300;400;500;600;700;800&display=swap');
@@ -37,7 +43,6 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 
-/* ─── NAV ─── */
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   height: 68px; display: flex; align-items: center; padding: 0 40px;
@@ -52,52 +57,30 @@ body {
 .nav-text-link:hover { color: var(--text); }
 .nav-text-link span { color: var(--lime); font-weight: 600; }
 
-/* ─── AUTH LAYOUT ─── */
 .auth-root { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; padding-top: 68px; }
 
-/* LEFT PANEL */
 .auth-left {
   background: var(--surface); border-right: 1px solid var(--border);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 60px 72px; position: relative; overflow: hidden;
 }
-.auth-left-orb {
-  position: absolute; bottom: -20%; left: -10%; width: 600px; height: 400px; border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 50%, rgba(61,187,0,0.1) 0%, rgba(124,92,252,0.06) 40%, transparent 70%);
-  pointer-events: none; filter: blur(2px);
-}
-.auth-left-orb2 {
-  position: absolute; top: -10%; right: -10%; width: 400px; height: 300px; border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 50%, rgba(124,92,252,0.07) 0%, transparent 65%);
-  pointer-events: none;
-}
+.auth-left-orb { position: absolute; bottom: -20%; left: -10%; width: 600px; height: 400px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(61,187,0,0.1) 0%, rgba(124,92,252,0.06) 40%, transparent 70%); pointer-events: none; filter: blur(2px); }
+.auth-left-orb2 { position: absolute; top: -10%; right: -10%; width: 400px; height: 300px; border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(124,92,252,0.07) 0%, transparent 65%); pointer-events: none; }
 .auth-left-content { position: relative; z-index: 1; width: 100%; max-width: 420px; }
 
-.auth-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--lime); background: var(--lime-dim); border: 1px solid var(--lime-glow);
-  border-radius: var(--r-pill); padding: 5px 14px; margin-bottom: 28px;
-}
+.auth-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--lime); background: var(--lime-dim); border: 1px solid var(--lime-glow); border-radius: var(--r-pill); padding: 5px 14px; margin-bottom: 28px; }
 .auth-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
-
 .auth-h1 { font-size: clamp(28px,3vw,42px); font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 14px; }
 .auth-h1 span { color: var(--lime); }
 .auth-sub { font-size: 15px; color: var(--sub); line-height: 1.65; margin-bottom: 44px; }
 
-/* Metrics */
 .auth-metrics { display: flex; flex-direction: column; gap: 12px; margin-bottom: 44px; }
-.auth-metric {
-  display: flex; align-items: center; gap: 14px;
-  background: #fff; border: 1px solid var(--border); border-radius: var(--r-card);
-  padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
+.auth-metric { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-card); padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
 .auth-metric-icon { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--lime-dim); border: 1px solid var(--lime-glow); }
 .auth-metric-val { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 2px; }
 .auth-metric-lbl { font-size: 12px; color: var(--muted); }
 
-/* Quote */
 .auth-quote { background: #fff; border: 1px solid var(--border); border-radius: var(--r-card); padding: 22px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 .auth-quote-mark { font-size: 36px; color: var(--lime); line-height: 1; font-weight: 800; margin-bottom: 8px; }
 .auth-quote-text { font-size: 13.5px; color: var(--sub); line-height: 1.7; margin-bottom: 16px; }
@@ -107,53 +90,31 @@ body {
 .auth-quote-role { font-size: 11px; color: var(--muted); }
 .auth-quote-company { font-size: 11px; color: var(--lime); font-weight: 600; }
 
-/* RIGHT PANEL */
-.auth-right {
-  background: var(--bg); display: flex; flex-direction: column;
-  align-items: center; justify-content: flex-start; padding: 80px 72px 60px;
-}
+.auth-right { background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 80px 72px 60px; }
 .auth-form-wrap { width: 100%; max-width: 400px; }
-
 .auth-form-title { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; margin-bottom: 6px; }
 .auth-form-sub { font-size: 14px; color: var(--sub); margin-bottom: 32px; }
 .auth-form-sub a { color: var(--lime); cursor: pointer; text-decoration: none; font-weight: 600; }
 .auth-form-sub a:hover { text-decoration: underline; }
 
-/* Password toggle */
 .field-pw { position: relative; }
 .field-pw .field-input { padding-right: 48px; }
 .field-pw-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); display: flex; align-items: center; padding: 0; transition: color 0.15s; }
 .field-pw-toggle:hover { color: var(--sub); }
-
-/* Forgot */
 .field-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
 .field-forgot { font-size: 12px; color: var(--muted); cursor: pointer; transition: color 0.15s; }
 .field-forgot:hover { color: var(--lime); }
 
-/* Fields */
 .field { margin-bottom: 16px; }
 .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--sub); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.06em; }
-.field-input {
-  display: block; width: 100%; height: 48px;
-  background: var(--surface); border: 1.5px solid var(--border2);
-  border-radius: var(--r-sm); color: var(--text); font-family: var(--sans);
-  font-size: 14px; padding: 0 16px; outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
+.field-input { display: block; width: 100%; height: 48px; background: var(--surface); border: 1.5px solid var(--border2); border-radius: var(--r-sm); color: var(--text); font-family: var(--sans); font-size: 14px; padding: 0 16px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
 .field-input::placeholder { color: var(--muted); }
 .field-input:focus { border-color: rgba(61,187,0,0.4); box-shadow: 0 0 0 3px rgba(61,187,0,0.07); }
 .field-input.has-error { border-color: rgba(239,68,68,0.5); }
 .field-input.has-error:focus { border-color: rgba(239,68,68,0.7); box-shadow: 0 0 0 3px rgba(239,68,68,0.07); }
 .field-error { font-size: 12px; color: #dc2626; margin-top: 5px; }
 
-/* Error banner */
-.auth-error-banner {
-  display: flex; align-items: flex-start; gap: 12px;
-  background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2);
-  border-left: 3px solid #ef4444; border-radius: var(--r-sm);
-  padding: 14px 16px; margin-bottom: 22px;
-  animation: errIn 0.2s ease;
-}
+.auth-error-banner { display: flex; align-items: flex-start; gap: 12px; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); border-left: 3px solid #ef4444; border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 22px; animation: errIn 0.2s ease; }
 @keyframes errIn { from{opacity:0;transform:translateY(-6px);} to{opacity:1;transform:translateY(0);} }
 .auth-error-icon { width: 22px; height: 22px; border-radius: 50%; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
 .auth-error-body { flex: 1; min-width: 0; }
@@ -162,20 +123,31 @@ body {
 .auth-error-dismiss { background: none; border: none; cursor: pointer; padding: 0; color: rgba(239,68,68,0.3); font-size: 20px; line-height: 1; flex-shrink: 0; transition: color 0.15s; }
 .auth-error-dismiss:hover { color: #ef4444; }
 
-/* Submit */
-.btn-submit {
-  display: flex; align-items: center; justify-content: center; gap: 0;
-  width: 100%; height: 52px; border-radius: var(--r-pill);
-  background: var(--text); border: none; color: #fff;
-  font-family: var(--sans); font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: opacity 0.2s; margin-top: 8px;
-  padding: 0 8px 0 24px;
+/* ── CAPTCHA ── */
+.captcha-wrap {
+  margin: 4px 0 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
 }
+.captcha-wrap.captcha-invalid { border-color: rgba(239,68,68,0.5); }
+.captcha-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sub); }
+.captcha-note { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+.captcha-err { font-size: 12px; color: #dc2626; display: flex; align-items: center; gap: 5px; }
+@media (max-width: 480px) {
+  .captcha-wrap > div:nth-child(2) { transform: scale(0.88); transform-origin: 0 0; }
+}
+
+.btn-submit { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; height: 52px; border-radius: var(--r-pill); background: var(--text); border: none; color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; padding: 0 8px 0 24px; }
 .btn-submit:hover:not(:disabled) { opacity: 0.85; }
 .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-submit-arrow { width: 34px; height: 34px; border-radius: 50%; background: var(--purple); display: flex; align-items: center; justify-content: center; margin-left: auto; flex-shrink: 0; }
 
-/* Terms */
 .auth-terms { font-size: 12px; color: var(--muted); text-align: center; margin-top: 20px; line-height: 1.6; }
 .auth-terms a { color: var(--sub); cursor: pointer; transition: color 0.15s; }
 .auth-terms a:hover { color: var(--text); }
@@ -227,14 +199,70 @@ const friendlyError = (raw = "") => {
   return { title: "Sign-in failed", msg: raw || "Something went wrong. Please try again." };
 };
 
+// ── reCAPTCHA hook ─────────────────────────────────────────────────────────────
+function useRecaptcha(containerRef, siteKey) {
+  const widgetIdRef = useRef(null);
+
+  useEffect(() => {
+    const renderWidget = () => {
+      if (!containerRef.current || widgetIdRef.current !== null) return;
+      widgetIdRef.current = window.grecaptcha.render(containerRef.current, {
+        sitekey: siteKey,
+        theme: "light",
+        size: "normal",
+      });
+    };
+
+    if (window.grecaptcha?.render) {
+      window.grecaptcha.ready(renderWidget);
+    } else {
+      if (!document.getElementById("recaptcha-script")) {
+        const script = document.createElement("script");
+        script.id = "recaptcha-script";
+        script.src = "https://www.google.com/recaptcha/api.js?render=explicit&hl=en";
+        script.async = true;
+        script.defer = true;
+        script.onload = () => window.grecaptcha.ready(renderWidget);
+        document.head.appendChild(script);
+      } else {
+        const poll = setInterval(() => {
+          if (window.grecaptcha?.render) {
+            clearInterval(poll);
+            window.grecaptcha.ready(renderWidget);
+          }
+        }, 100);
+        return () => clearInterval(poll);
+      }
+    }
+  }, [containerRef, siteKey]);
+
+  const getToken = useCallback(() => {
+    if (widgetIdRef.current === null || !window.grecaptcha) return null;
+    return window.grecaptcha.getResponse(widgetIdRef.current) || null;
+  }, []);
+
+  const reset = useCallback(() => {
+    if (widgetIdRef.current !== null && window.grecaptcha) {
+      window.grecaptcha.reset(widgetIdRef.current);
+    }
+  }, []);
+
+  return { getToken, reset };
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────────
 export default function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [showPw, setShowPw]       = useState(false);
+  const [errors, setErrors]       = useState({});
   const [authError, setAuthError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]     = useState(false);
   const navigate = useNavigate();
+
+  // ── reCAPTCHA ──
+  const captchaRef = useRef(null);
+  const { getToken, reset: resetCaptcha } = useRecaptcha(captchaRef, RECAPTCHA_SITE_KEY);
 
   const validate = () => {
     const e = {};
@@ -251,10 +279,24 @@ export default function SignIn() {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length) return;
+
+    // ── CAPTCHA CHECK ──
+    const captchaToken = getToken();
+    if (!captchaToken) {
+      setErrors(prev => ({ ...prev, captcha: "Please complete the security check before continuing." }));
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setAuthError(friendlyError(error.message)); setLoading(false); }
-    else { setLoading(false); navigate("/dashboard"); }
+    if (error) {
+      setAuthError(friendlyError(error.message));
+      setLoading(false);
+      resetCaptcha();
+    } else {
+      setLoading(false);
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -343,13 +385,35 @@ export default function SignIn() {
               {errors.password && <div className="field-error">{errors.password}</div>}
             </div>
 
+            {/* ── reCAPTCHA v2 ── */}
+            <div className={`captcha-wrap${errors.captcha ? " captcha-invalid" : ""}`}>
+              <div className="captcha-header">Security check</div>
+              <div ref={captchaRef} />
+              <div className="captcha-note">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Protected by Google reCAPTCHA
+              </div>
+              {errors.captcha && (
+                <div className="captcha-err">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  {errors.captcha}
+                </div>
+              )}
+            </div>
+
             <button className="btn-submit" onClick={handleSubmit} disabled={loading}>
               {loading ? "Signing in…" : "Sign in"}
               {!loading && <div className="btn-submit-arrow"><Arrow size={15} /></div>}
             </button>
 
             <p className="auth-terms">
-              By continuing, you agree to Lixeen's <a>Terms of Service</a> and <a>Privacy Policy</a>.
+              By continuing, you agree to Lixeen's{" "}
+              <a onClick={() => navigate("/terms")}>Terms of Service</a> and{" "}
+              <a onClick={() => navigate("/privacy")}>Privacy Policy</a>.
             </p>
           </div>
         </div>
