@@ -714,12 +714,16 @@ function Navbar() {
                     </div>
                 ) : (
                     <div className="mobile-menu-actions">
+                        <Link to="/login">
                         <button className="btn-outline-dark" style={{ flex: 1, justifyContent: "center" }}>
                             Log in <div className="arrow-box"><Arrow size={14} color="#555"/></div>
                         </button>
+                        </Link>
+                        <Link to="/sign-up">
                         <button className="btn-lime" style={{ flex: 1, justifyContent: "center" }}>
                             Get started <div className="arrow-box"><Arrow size={14} color="#fff"/></div>
                         </button>
+                        </Link>
                     </div>
                 )}
             </div>
