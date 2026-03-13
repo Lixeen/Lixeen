@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Rounded neon square -->
+  <rect x="204.8" y="204.8" width="614.4" height="614.4" rx="153.6" ry="153.6" fill="#C6F31D"/>
+
+  <!-- Cube mark -->
+  <!-- Top face -->
+  <polygon points="512,384 614.4,445.44 512,506.88 409.6,445.44"
+           fill="#2E4A17"/>
+
+  <!-- Left face -->
+  <polygon points="409.6,445.44 512,506.88 512,614.4 409.6,552.96"
+           fill="#3E5F1F"/>
+
+  <!-- Right face -->
+  <polygon points="614.4,445.44 512,506.88 512,614.4 614.4,552.96"
+           fill="#243A12"/>
+
+</svg>
