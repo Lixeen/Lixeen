@@ -10,14 +10,14 @@ import { supabase } from "../../lib/supabase";
 const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_V2_SITE_KEY";
 
 const US_STATES = [
-  "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
-  "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
-  "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
-  "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire",
-  "New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio",
-  "Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota",
-  "Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia",
-  "Wisconsin","Wyoming","District of Columbia",
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
+  "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
+  "Wisconsin", "Wyoming", "District of Columbia",
 ];
 
 const G = `
@@ -36,11 +36,20 @@ html,body{height:100%;}
 body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column;}
 ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px;}
 
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;height:68px;display:flex;align-items:center;padding:0 40px;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);}
-.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
-.nav-text-link{font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;transition:color 0.15s;padding:8px 4px;}
-.nav-text-link:hover{color:var(--text);}
-.nav-text-link span{color:var(--lime);font-weight:600;cursor:pointer;}
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 68px; display: flex; align-items: center; padding: 0 40px;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 var(--border);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; cursor: pointer; }
+.nav-logo-mark { width: 34px; height: 34px; background: #c8f026; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-logo-name { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.nav-text-link { font-size: 14px; font-weight: 500; color: var(--sub); cursor: pointer; transition: color 0.15s; padding: 8px 4px; }
+.nav-text-link:hover { color: var(--text); }
+.nav-text-link span { color: var(--lime); font-weight: 600; }
+
 
 .auth-root{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;padding-top:68px;}
 
@@ -162,8 +171,8 @@ const EyeIcon = ({ open }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     {open
-      ? <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
-      : <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></>}
+      ? <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>
+      : <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></>}
   </svg>
 );
 
@@ -176,8 +185,8 @@ function getPasswordStrength(pw) {
   if (/[^A-Za-z0-9]/.test(pw)) s++;
   return s;
 }
-const STRENGTH_LABELS  = ["","Weak","Fair","Good","Strong"];
-const STRENGTH_CLASSES = ["","weak","fair","good","strong"];
+const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
+const STRENGTH_CLASSES = ["", "weak", "fair", "good", "strong"];
 
 // ── reCAPTCHA hook ─────────────────────────────────────────────────────────────
 // Dynamically injects the reCAPTCHA v2 script once per page load, then renders
@@ -240,8 +249,8 @@ function useRecaptcha(containerRef, siteKey) {
 function SuccessScreen({ email }) {
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
-  const [resent, setResent]       = useState(false);
-  const [cooldown, setCooldown]   = useState(0);
+  const [resent, setResent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const timerRef = useRef(null);
 
   const handleResend = async () => {
@@ -260,24 +269,24 @@ function SuccessScreen({ email }) {
       <div className="success-title">Check your inbox</div>
       <div className="success-email-chip">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
         </svg>
         {email}
       </div>
       <p className="success-desc">We've sent a confirmation link to your email. Click it to verify your account and get started.</p>
       <div className="success-tips">
         <div className="success-tips-title">Didn't get it?</div>
-        <div className="success-tip"><span className="success-tip-dot"/>Check your <strong>spam or junk folder</strong>.</div>
-        <div className="success-tip"><span className="success-tip-dot"/>Make sure <strong>{email}</strong> is correct.</div>
-        <div className="success-tip"><span className="success-tip-dot"/>Allow a minute or two for delivery.</div>
+        <div className="success-tip"><span className="success-tip-dot" />Check your <strong>spam or junk folder</strong>.</div>
+        <div className="success-tip"><span className="success-tip-dot" />Make sure <strong>{email}</strong> is correct.</div>
+        <div className="success-tip"><span className="success-tip-dot" />Allow a minute or two for delivery.</div>
       </div>
       <button className="btn-resend" onClick={handleResend} disabled={resending || cooldown > 0}>
         {resending ? "Resending…" : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend confirmation email"}
       </button>
       {resent && cooldown > 0 && <div className="resend-msg">✓ Email resent — check your inbox</div>}
-      <p style={{ fontSize:12, color:"var(--muted)", marginTop:20, lineHeight:1.6 }}>
+      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 20, lineHeight: 1.6 }}>
         Wrong email?{" "}
-        <span onClick={() => navigate("/sign-up")} style={{ color:"var(--lime)", fontWeight:600, cursor:"pointer" }}>Start over</span>
+        <span onClick={() => navigate("/sign-up")} style={{ color: "var(--lime)", fontWeight: 600, cursor: "pointer" }}>Start over</span>
       </p>
     </div>
   );
@@ -285,12 +294,12 @@ function SuccessScreen({ email }) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function SignUp() {
-  const [form, setForm]             = useState({ firstName:"", lastName:"", email:"", state:"", password:"" });
-  const [showPw, setShowPw]         = useState(false);
-  const [errors, setErrors]         = useState({});
-  const [loading, setLoading]       = useState(false);
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", state: "", password: "" });
+  const [showPw, setShowPw] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [signUpError, setSignUpError] = useState("");
-  const [success, setSuccess]       = useState(false);
+  const [success, setSuccess] = useState(false);
   const submittedRef = useRef(false);
   const navigate = useNavigate();
 
@@ -307,7 +316,7 @@ export default function SignUp() {
   const validate = () => {
     const e = {};
     if (!form.firstName.trim()) e.firstName = "Required";
-    if (!form.lastName.trim())  e.lastName  = "Required";
+    if (!form.lastName.trim()) e.lastName = "Required";
     if (!form.email) e.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
     if (!form.state) e.state = "Please select your state";
@@ -340,9 +349,9 @@ export default function SignUp() {
         emailRedirectTo: window.location.origin + "/dashboard",
         data: {
           first_name: form.firstName,
-          last_name:  form.lastName,
-          full_name:  `${form.firstName} ${form.lastName}`,
-          state:      form.state,
+          last_name: form.lastName,
+          full_name: `${form.firstName} ${form.lastName}`,
+          state: form.state,
         },
       },
     });
@@ -376,16 +385,16 @@ export default function SignUp() {
       <div className="auth-root">
         {/* LEFT */}
         <div className="auth-left">
-          <div className="auth-left-orb"/><div className="auth-left-orb2"/>
+          <div className="auth-left-orb" /><div className="auth-left-orb2" />
           <div className="auth-left-content">
-            <div className="auth-eyebrow"><div className="auth-eyebrow-dot"/>Join 18,400+ active trainers</div>
-            <h1 className="auth-h1">Get paid to shape<br/><span>the future of AI.</span></h1>
+            <div className="auth-eyebrow"><div className="auth-eyebrow-dot" />Join 18,400+ active trainers</div>
+            <h1 className="auth-h1">Get paid to shape<br /><span>the future of AI.</span></h1>
             <p className="auth-sub">Work on meaningful tasks — from writing and evaluation to safety testing — on your own schedule, from anywhere in the world.</p>
             <div className="auth-steps">
               {[
-                { n:"01", title:"Create your profile",     desc:"Tell us your skills, languages, and areas of expertise. Takes less than 5 minutes." },
-                { n:"02", title:"Get matched to tasks",    desc:"We surface tasks that fit your background. No bidding, no cold outreach — just relevant work." },
-                { n:"03", title:"Complete work & get paid",desc:"Submit tasks, receive feedback, and get paid reliably. Transparent rates, no surprises." },
+                { n: "01", title: "Create your profile", desc: "Tell us your skills, languages, and areas of expertise. Takes less than 5 minutes." },
+                { n: "02", title: "Get matched to tasks", desc: "We surface tasks that fit your background. No bidding, no cold outreach — just relevant work." },
+                { n: "03", title: "Complete work & get paid", desc: "Submit tasks, receive feedback, and get paid reliably. Transparent rates, no surprises." },
               ].map(s => (
                 <div className="auth-step" key={s.n}>
                   <div className="auth-step-num">{s.n}</div>
@@ -395,9 +404,9 @@ export default function SignUp() {
             </div>
             <div className="auth-trust">
               <span className="auth-trust-label">Avg. earnings</span>
-              <div className="auth-trust-line"/>
+              <div className="auth-trust-line" />
               <div className="auth-trust-logos">
-                {["$18–$45/hr","50+ countries","240K+ tasks/mo","Paid weekly"].map(co => (
+                {["$18–$45/hr", "50+ countries", "240K+ tasks/mo", "Paid weekly"].map(co => (
                   <span key={co} className="auth-trust-logo">{co}</span>
                 ))}
               </div>
@@ -414,39 +423,39 @@ export default function SignUp() {
                 <div className="auth-form-sub">Already have an account? <a onClick={() => navigate("/login")}>Sign in</a></div>
 
                 <div className="field-row-2">
-                  <div className="field" style={{ margin:0 }}>
+                  <div className="field" style={{ margin: 0 }}>
                     <label className="field-label">First name</label>
-                    <input className={`field-input${errors.firstName ? " has-error":""}`} placeholder="Ada"
-                      value={form.firstName} onChange={e => set("firstName", e.target.value)}/>
+                    <input className={`field-input${errors.firstName ? " has-error" : ""}`} placeholder="Ada"
+                      value={form.firstName} onChange={e => set("firstName", e.target.value)} />
                     {errors.firstName && <div className="field-error">{errors.firstName}</div>}
                   </div>
-                  <div className="field" style={{ margin:0 }}>
+                  <div className="field" style={{ margin: 0 }}>
                     <label className="field-label">Last name</label>
-                    <input className={`field-input${errors.lastName ? " has-error":""}`} placeholder="Lovelace"
-                      value={form.lastName} onChange={e => set("lastName", e.target.value)}/>
+                    <input className={`field-input${errors.lastName ? " has-error" : ""}`} placeholder="Lovelace"
+                      value={form.lastName} onChange={e => set("lastName", e.target.value)} />
                     {errors.lastName && <div className="field-error">{errors.lastName}</div>}
                   </div>
                 </div>
 
                 <div className="field">
                   <label className="field-label">Email</label>
-                  <input className={`field-input${errors.email ? " has-error":""}`} type="email"
-                    placeholder="you@email.com" value={form.email} onChange={e => set("email", e.target.value)}/>
+                  <input className={`field-input${errors.email ? " has-error" : ""}`} type="email"
+                    placeholder="you@email.com" value={form.email} onChange={e => set("email", e.target.value)} />
                   {errors.email && <div className="field-error">{errors.email}</div>}
                 </div>
 
                 <div className="field">
                   <label className="field-label">State</label>
-                  <div style={{ position:"relative" }}>
-                    <select className={`field-select${!form.state?" is-placeholder":""}${errors.state?" has-error":""}`}
+                  <div style={{ position: "relative" }}>
+                    <select className={`field-select${!form.state ? " is-placeholder" : ""}${errors.state ? " has-error" : ""}`}
                       value={form.state} onChange={e => set("state", e.target.value)}>
                       <option value="">Select your state…</option>
                       {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
                       strokeLinecap="round" strokeLinejoin="round"
-                      style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"var(--muted)", pointerEvents:"none" }}>
-                      <polyline points="6 9 12 15 18 9"/>
+                      style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none" }}>
+                      <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </div>
                   {errors.state && <div className="field-error">{errors.state}</div>}
@@ -455,18 +464,18 @@ export default function SignUp() {
                 <div className="field">
                   <label className="field-label">Password</label>
                   <div className="field-pw">
-                    <input className={`field-input${errors.password ? " has-error":""}`}
-                      type={showPw ? "text":"password"} placeholder="Min. 8 characters"
-                      value={form.password} onChange={e => set("password", e.target.value)}/>
+                    <input className={`field-input${errors.password ? " has-error" : ""}`}
+                      type={showPw ? "text" : "password"} placeholder="Min. 8 characters"
+                      value={form.password} onChange={e => set("password", e.target.value)} />
                     <button className="field-pw-toggle" onClick={() => setShowPw(v => !v)}>
-                      <EyeIcon open={showPw}/>
+                      <EyeIcon open={showPw} />
                     </button>
                   </div>
                   {form.password && (
                     <div className="pw-strength">
                       <div className="pw-strength-bars">
-                        {[1,2,3,4].map(i => (
-                          <div key={i} className={`pw-bar${pwStrength >= i ? " "+STRENGTH_CLASSES[pwStrength]:""}`}/>
+                        {[1, 2, 3, 4].map(i => (
+                          <div key={i} className={`pw-bar${pwStrength >= i ? " " + STRENGTH_CLASSES[pwStrength] : ""}`} />
                         ))}
                       </div>
                       <div className="pw-strength-label">{STRENGTH_LABELS[pwStrength]}</div>
@@ -476,20 +485,20 @@ export default function SignUp() {
                 </div>
 
                 {/* ── reCAPTCHA v2 ── */}
-                <div className={`captcha-wrap${errors.captcha ? " captcha-error-border":""}`}>
+                <div className={`captcha-wrap${errors.captcha ? " captcha-error-border" : ""}`}>
                   <div className="captcha-label">Security check</div>
                   {/* reCAPTCHA widget mounts here */}
-                  <div ref={captchaContainerRef}/>
+                  <div ref={captchaContainerRef} />
                   <div className="captcha-note">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                     Protected by Google reCAPTCHA
                   </div>
                   {errors.captcha && (
                     <div className="captcha-err-msg">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                       </svg>
                       {errors.captcha}
                     </div>
@@ -497,14 +506,14 @@ export default function SignUp() {
                 </div>
 
                 {signUpError && (
-                  <div style={{ fontSize:13, color:"#dc2626", background:"#fef2f2", border:"1px solid #fecaca", borderRadius:"var(--r-sm)", padding:"10px 14px", marginBottom:8 }}>
+                  <div style={{ fontSize: 13, color: "#dc2626", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "var(--r-sm)", padding: "10px 14px", marginBottom: 8 }}>
                     ⚠ {signUpError}
                   </div>
                 )}
 
                 <button className="btn-submit" onClick={handleSubmit} disabled={loading}>
                   {loading ? "Creating account…" : "Create account"}
-                  {!loading && <div className="btn-submit-arrow"><Arrow size={15}/></div>}
+                  {!loading && <div className="btn-submit-arrow"><Arrow size={15} /></div>}
                 </button>
 
                 <p className="auth-terms">
