@@ -289,6 +289,25 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 .topbar-hamburger.open span:nth-child(2) { opacity: 0; }
 .topbar-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
 
+/* ── Mobile topbar logo (hidden on desktop) ── */
+.topbar-logo-mobile {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.topbar-logo-mobile .nav-logo-mark {
+  width: 28px; height: 28px;
+  background: var(--lime);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.topbar-logo-mobile .nav-logo-name {
+  font-size: 17px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.5px;
+}
+
 /* ── Responsive breakpoints ── */
 @media (max-width: 1100px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -314,9 +333,10 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 
   /* Topbar adjustments */
   .topbar { padding: 0 16px; gap: 10px; }
-  .topbar-title { font-size: 15px; }
+  .topbar-title { display: none; }
   .topbar-sub { display: none; }
   .topbar-hamburger { display: flex; }
+  .topbar-logo-mobile { display: flex; }
 
   /* Content padding */
   .content { padding: 20px 16px 60px; }
@@ -395,11 +415,6 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
   .modal-box { padding: 24px 20px; }
   .modal-actions { flex-direction: column; }
   .modal-actions button { width: 100%; justify-content: center; }
-
-  /* Payment method grid */
-  div[style*="grid-template-columns: 1fr 1fr"] {
-    /* Payment methods selector */
-  }
 }
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;cursor:pointer;}
 .nav-logo-mark{width:34px;height:34px;background:var(--lime);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -417,8 +432,6 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 /* ── Verification view ── */
 .verify-step{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;}
 .verify-step-num{width:28px;height:28px;border-radius:50%;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
-@media(max-width:1100px){.stats-row{grid-template-columns:repeat(2,1fr);}.two-col{grid-template-columns:1fr;}.three-col{grid-template-columns:1fr 1fr;}}
-@media(max-width:800px){.sidebar{transform:translateX(-100%);}.main{margin-left:0;}.three-col{grid-template-columns:1fr;}.form-grid-2{grid-template-columns:1fr;}.task-card{grid-template-columns:auto 1fr;}.task-card-right{display:none;}.completed-table-head{grid-template-columns:70px 1fr 90px;}.completed-table-row{grid-template-columns:70px 1fr 90px;}.completed-table-row>*:nth-child(3),.completed-table-head>*:nth-child(3){display:none;}}
 `;
 
 const getInitials = (n) => {
@@ -444,7 +457,6 @@ const I = ({ n, s = 16, c = "currentColor" }) => {
     lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>,
     award: <><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></>,
     clipboard: <><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></>,
-    shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>,
     shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>,
   };
   return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[n]}</svg>;
@@ -506,7 +518,6 @@ const ASSESSMENT_META = {
 
 
 // ── Verification View ─────────────────────────────────────────────────────────
-// ── Verification View ─────────────────────────────────────────────────────────
 function VerificationView() {
   const { user } = useAuth();
   const [verificationLink, setVerificationLink] = useState(null);
@@ -526,7 +537,6 @@ function VerificationView() {
       });
   }, [user?.id]);
 
-  // Real-time: if admin sets/changes the link or approves, reflect immediately
   useEffect(() => {
     if (!user?.id) return;
     const ch = supabase.channel("verify-link-" + user.id)
@@ -555,8 +565,6 @@ function VerificationView() {
 
   return (
     <div style={{ maxWidth: 580, margin: "0 auto" }}>
-
-      {/* Hero header card */}
       <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", marginBottom: 16 }}>
         <div style={{ background: "#0a0a0a", padding: "28px 32px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
@@ -570,7 +578,6 @@ function VerificationView() {
 
         <div style={{ padding: "28px 32px" }}>
           {isApproved ? (
-            /* ── APPROVED STATE ── */
             <div style={{ textAlign: "center", padding: "16px 0" }}>
               <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#f0faf4", border: "2px solid #b8e0c8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 16px" }}>✅</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#000", marginBottom: 8 }}>Verification Complete</div>
@@ -579,7 +586,6 @@ function VerificationView() {
               </div>
             </div>
           ) : !verificationLink ? (
-            /* ── NO LINK YET ── */
             <div style={{ textAlign: "center", padding: "16px 0" }}>
               <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#f5f5f5", border: "2px solid #e0e0e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 16px" }}>⏳</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: "#000", marginBottom: 8 }}>Your verification link is being prepared</div>
@@ -591,13 +597,10 @@ function VerificationView() {
               </div>
             </div>
           ) : (
-            /* ── LINK READY ── */
             <>
               <p style={{ fontSize: 14, color: "#444", lineHeight: 1.75, marginBottom: 22 }}>
                 Your personal verification link is ready. Click the button below to be taken to our secure verification partner. The process typically takes <strong>2–5 minutes</strong> and you'll need a valid government-issued ID.
               </p>
-
-              {/* What you'll need */}
               <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "16px 18px", marginBottom: 24 }}>
                 <div style={{ fontSize: 11, fontWeight: 800, color: "#475569", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>What you'll need</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -617,22 +620,14 @@ function VerificationView() {
                   ))}
                 </div>
               </div>
-
               <button
                 onClick={handleStartVerification}
-                style={{
-                  width: "100%", padding: "16px", background: "#0a0a0a", color: "#fff",
-                  border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700,
-                  cursor: "pointer", transition: "opacity 0.15s", fontFamily: "var(--sans)",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                }}
+                style={{ width: "100%", padding: "16px", background: "#0a0a0a", color: "#fff", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "opacity 0.15s", fontFamily: "var(--sans)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
                 onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
                 onMouseLeave={e => e.currentTarget.style.opacity = "1"}
               >
-                <span>🛡️</span>
-                Start Verification →
+                <span>🛡️</span>Start Verification →
               </button>
-
               <p style={{ fontSize: 11, color: "#999", textAlign: "center", marginTop: 14, lineHeight: 1.6 }}>
                 You'll be redirected to our verification partner in a new tab. Your data is encrypted and securely handled. Questions? <a href="mailto:support@lixeen.com" style={{ color: "#555" }}>support@lixeen.com</a>
               </p>
@@ -641,7 +636,6 @@ function VerificationView() {
         </div>
       </div>
 
-      {/* How it works */}
       {!isApproved && (
         <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 14, padding: "20px 24px" }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: "#000", marginBottom: 16, letterSpacing: "-0.01em" }}>How it works</div>
@@ -937,7 +931,6 @@ function OverviewView({ onGoToTasks, onGoToNotifications, projectsLocked, onGoTo
   const fmtE = (n) => "$" + n.toFixed(2);
   return (
     <>
-      {/* Lock notice on overview */}
       {projectsLocked && (
         <div className="lock-banner">
           <div className="lock-banner-icon">🔒</div>
@@ -1008,26 +1001,20 @@ function OverviewView({ onGoToTasks, onGoToNotifications, projectsLocked, onGoTo
 }
 
 
-// ── Projects Locked Gate ──────────────────────────────────────────────────────
 function ProjectsLockedGate({ onGoToVerification }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "55vh", padding: "40px 20px" }}>
       <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 20, maxWidth: 460, width: "100%", overflow: "hidden", boxShadow: "0 8px 40px rgba(0,0,0,0.08)", textAlign: "center" }}>
-        {/* Header */}
         <div style={{ background: "#0a0a0a", padding: "36px 32px" }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 6 }}>Projects Locked</div>
           <div style={{ fontSize: 13, color: "#888" }}>Identity verification required to access projects</div>
         </div>
-        {/* Body */}
         <div style={{ padding: "32px" }}>
           <p style={{ fontSize: 14, color: "#444", lineHeight: 1.75, marginBottom: 28 }}>
             Your project access has been temporarily suspended by an administrator pending identity verification. You can still access your <strong>payments and earnings</strong> at any time.
           </p>
-          <button
-            onClick={onGoToVerification}
-            style={{ width: "100%", padding: "14px", background: "#0a0a0a", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", marginBottom: 12, fontFamily: "var(--sans)", letterSpacing: "-0.01em" }}
-          >
+          <button onClick={onGoToVerification} style={{ width: "100%", padding: "14px", background: "#0a0a0a", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", marginBottom: 12, fontFamily: "var(--sans)", letterSpacing: "-0.01em" }}>
             Complete Verification →
           </button>
           <p style={{ fontSize: 11, color: "#999", lineHeight: 1.6 }}>
@@ -1051,7 +1038,6 @@ function TasksView({ initialTab, onSubTabChange, projectsLocked, onGoToVerificat
   const [guardModal, setGuardModal] = useState(null);
   const setAndPersist = (t) => { setTab(t); onSubTabChange(t); };
 
-  // ── If locked, show the gate instead ──
   if (projectsLocked) return <ProjectsLockedGate onGoToVerification={onGoToVerification} />;
 
   useEffect(() => {
@@ -1459,10 +1445,14 @@ export default function Dashboard() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [availableCount, setAvailableCount] = useState(null);
   const [userState, setUserState] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false); // ← mobile sidebar state
 
   // ── projects_locked state ──
   const [projectsLocked, setProjectsLocked] = useState(false);
   const [lockLoading, setLockLoading] = useState(true);
+
+  // Close sidebar on outside click / route change
+  const closeSidebar = () => setSidebarOpen(false);
 
   // Load lock status + state on mount
   useEffect(() => {
@@ -1489,10 +1479,8 @@ export default function Dashboard() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` }, (payload) => {
         setAvailableCount((payload.new?.available_projects ?? []).length);
         if (payload.new?.state !== undefined) setUserState(payload.new.state);
-        // Real-time lock state update
         if (payload.new?.projects_locked !== undefined) {
           setProjectsLocked(!!payload.new.projects_locked);
-          // If just unlocked and on verification tab, go to tasks
           if (!payload.new.projects_locked && view === "verification") setView("tasks");
         }
       }).subscribe();
@@ -1528,16 +1516,17 @@ export default function Dashboard() {
     else navigate("/login");
   };
 
-  // Navigation helper — clicking locked items redirects to verification
   const handleNavClick = (id) => {
     if (projectsLocked && (id === "tasks" || id === "assessment")) {
       setView("verification");
+      closeSidebar();
       return;
     }
     setView(id);
+    closeSidebar(); // ← auto-close sidebar on nav on mobile
   };
 
-  const goToVerification = () => setView("verification");
+  const goToVerification = () => { setView("verification"); closeSidebar(); };
   const goToTasks = (sub) => { if (projectsLocked) { setView("verification"); return; } setView("tasks"); if (sub) setTaskTab(sub); };
 
   const NAV = [
@@ -1581,9 +1570,12 @@ export default function Dashboard() {
     <>
       <style>{G}</style>
       <div className="shell">
-        <aside className="sidebar">
+        {/* Mobile backdrop */}
+        <div className={`sidebar-backdrop${sidebarOpen ? " open" : ""}`} onClick={closeSidebar} />
+
+        <aside className={`sidebar${sidebarOpen ? " mobile-open" : ""}`}>
           <div className="sidebar-top">
-            <Link to="/" className="nav-logo">
+            <Link to="/" className="nav-logo" onClick={closeSidebar}>
               <div className="nav-logo-mark"><LogoMark size={18} /></div>
               <span className="nav-logo-name">Lixeen</span>
             </Link>
@@ -1595,11 +1587,11 @@ export default function Dashboard() {
                 {userState ? (
                   <div className="sidebar-user-state">
                     📍 {userState}
-                    <button className="state-edit-btn" style={{ marginLeft: 6 }} onClick={() => { setView("profile"); setProfileTab("info"); }} title="Edit state">edit</button>
+                    <button className="state-edit-btn" style={{ marginLeft: 6 }} onClick={() => { setView("profile"); setProfileTab("info"); closeSidebar(); }} title="Edit state">edit</button>
                   </div>
                 ) : (
                   <div className="sidebar-user-state">
-                    <button className="state-edit-btn" onClick={() => { setView("profile"); setProfileTab("info"); }}>+ Add state</button>
+                    <button className="state-edit-btn" onClick={() => { setView("profile"); setProfileTab("info"); closeSidebar(); }}>+ Add state</button>
                   </div>
                 )}
               </div>
@@ -1616,7 +1608,7 @@ export default function Dashboard() {
                 <div
                   key={item.id}
                   className={`sidebar-item${view === item.id ? " active" : ""}${isLockedNav ? " locked-nav" : ""}`}
-                  onClick={() => isLockedNav ? goToVerification() : setView(item.id)}
+                  onClick={() => isLockedNav ? goToVerification() : handleNavClick(item.id)}
                   title={isLockedNav ? "Complete verification to unlock" : undefined}
                 >
                   <span className="sidebar-item-icon"><I n={item.icon} s={15} /></span>
@@ -1628,8 +1620,6 @@ export default function Dashboard() {
                 </div>
               );
             })}
-
-
           </nav>
 
           <div className="sidebar-bottom">
@@ -1641,10 +1631,34 @@ export default function Dashboard() {
 
         <div className="main">
           <div className="topbar">
-            <div><span className="topbar-title">{title}</span><span className="topbar-sub">— {subtitle}</span></div>
+            {/* Hamburger — mobile only */}
+            <button
+              className={`topbar-hamburger${sidebarOpen ? " open" : ""}`}
+              onClick={() => setSidebarOpen(o => !o)}
+              aria-label="Toggle navigation"
+            >
+              <span /><span /><span />
+            </button>
+
+            {/* Logo — mobile only, shown in topbar when sidebar is hidden */}
+            <Link to="/" className="topbar-logo-mobile">
+              <div className="nav-logo-mark"><LogoMark size={14} /></div>
+              <span className="nav-logo-name">Lixeen</span>
+            </Link>
+
+            {/* Desktop title */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span className="topbar-title">{title}</span>
+              <span className="topbar-sub">— {subtitle}</span>
+            </div>
+
             <div className="topbar-right">
               <button className="topbar-icon-btn"><I n="search" s={15} /></button>
-              <button className={`topbar-icon-btn${unreadCount > 0 ? " notif-dot" : ""}`} onClick={() => setView("notifications")} style={{ position: "relative" }}>
+              <button
+                className={`topbar-icon-btn${unreadCount > 0 ? " notif-dot" : ""}`}
+                onClick={() => { setView("notifications"); closeSidebar(); }}
+                style={{ position: "relative" }}
+              >
                 <I n="bell" s={15} />
                 {unreadCount > 0 && (
                   <span style={{ position: "absolute", top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9, background: "#000", color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px", border: "2px solid var(--surface)" }}>
@@ -1652,7 +1666,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </button>
-              <div className="sidebar-av" style={{ width: 34, height: 34, cursor: "pointer" }} onClick={() => setView("profile")}>{getInitials(user.user_metadata.full_name)}</div>
+              <div className="sidebar-av" style={{ width: 34, height: 34, cursor: "pointer" }} onClick={() => { setView("profile"); closeSidebar(); }}>{getInitials(user.user_metadata.full_name)}</div>
             </div>
           </div>
 
