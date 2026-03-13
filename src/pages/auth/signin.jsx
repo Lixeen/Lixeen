@@ -295,7 +295,7 @@ export default function SignIn() {
       resetCaptcha();
     } else {
       setLoading(false);
-      navigate("/dashboard");
+      navigate("/");
     }
   };
 
