@@ -7,7 +7,7 @@ import { supabase } from "../../lib/supabase";
 // IMPORTANT: Replace with your actual reCAPTCHA v2 site key from:
 // https://www.google.com/recaptcha/admin  → choose "I'm not a robot" checkbox
 // ─────────────────────────────────────────────────────────────────────────────
-const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_V2_SITE_KEY";
+const RECAPTCHA_SITE_KEY = "6LfC8ogsAAAAAIdi5Cv5v2y39ksRG4IR17PZkY-Y";
 
 const US_STATES = [
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
