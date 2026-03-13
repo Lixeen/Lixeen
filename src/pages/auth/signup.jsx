@@ -76,7 +76,6 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 .auth-trust-line{width:1px;height:20px;background:var(--border2);flex-shrink:0;}
 .auth-trust-logos{display:flex;gap:14px;flex-wrap:wrap;}
 .auth-trust-logo{font-size:12px;font-weight:700;color:var(--sub);}
-sjsjj-sjs
 
 .auth-right{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 72px;}
 .auth-form-wrap{width:100%;max-width:420px;}
