@@ -26,7 +26,7 @@ function StateSelect({ value, onChange, className = "field-select", placeholder 
 }
 
 // ─── Hash persistence helpers ──────────────────────────────────────────────────
-const VALID_VIEWS = ["overview", "tasks", "payments", "profile", "notifications", "settings", "assessment", "verification"];
+const VALID_VIEWS = ["overview", "tasks", "payments", "profile", "notifications", "settings", "assessment", "verification", "credentials"];
 const VALID_SUBTABS = {
   tasks: ["available", "inprogress", "completed"],
   payments: ["overview", "methods", "history", "tax"],
@@ -316,7 +316,6 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 }
 
 @media (max-width: 800px) {
-  /* Sidebar slides in/out */
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
@@ -327,21 +326,13 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
     transform: translateX(0);
     box-shadow: 4px 0 32px rgba(0,0,0,0.15);
   }
-
-  /* Main takes full width */
   .main { margin-left: 0; }
-
-  /* Topbar adjustments */
   .topbar { padding: 0 16px; gap: 10px; }
   .topbar-title { display: none; }
   .topbar-sub { display: none; }
   .topbar-hamburger { display: flex; }
   .topbar-logo-mobile { display: flex; }
-
-  /* Content padding */
   .content { padding: 20px 16px 60px; }
-
-  /* Stats grid */
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
@@ -349,25 +340,17 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
   }
   .stat-card { padding: 16px 18px; min-height: auto; }
   .stat-card-val { font-size: 24px; }
-
-  /* Three-col → single */
   .three-col { grid-template-columns: 1fr; }
-
-  /* Task cards */
   .task-card {
     grid-template-columns: auto 1fr;
     gap: 12px;
   }
   .task-card-right { display: none; }
   .task-card { padding: 14px 16px; }
-
-  /* Completed table — hide less important cols */
   .completed-table-head { grid-template-columns: 70px 1fr 90px; }
   .completed-table-row { grid-template-columns: 70px 1fr 90px; }
   .completed-table-row > *:nth-child(3),
   .completed-table-head > *:nth-child(3) { display: none; }
-
-  /* Tabs scroll horizontally */
   .tabs {
     overflow-x: auto;
     flex-wrap: nowrap;
@@ -376,26 +359,14 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
   }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { white-space: nowrap; padding: 7px 14px; font-size: 12px; }
-
-  /* Forms */
   .form-grid-2 { grid-template-columns: 1fr; }
-
-  /* Assessment layout */
   .assess-hero { flex-direction: column; gap: 16px; }
   .assess-hero > div:last-child { width: 100%; }
   .assess-hero > div:last-child button { width: 100%; justify-content: center; }
-
-  /* Active task banner */
   .active-task-banner { flex-direction: column; }
   .active-task-actions { flex-direction: row; }
-
-  /* Bottom CTA in job detail */
   .jd-bottom-cta { flex-direction: column; align-items: flex-start; }
-
-  /* Payout card */
   .payout-next { flex-direction: column; }
-
-  /* Cards head wrap */
   .card-head { flex-wrap: wrap; gap: 8px; }
 }
 
@@ -405,13 +376,9 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
   .stat-card-label { font-size: 10px; }
   .topbar { height: 56px; }
   .content { padding: 16px 12px 60px; }
-
-  /* Sidebar slightly narrower on very small screens */
   :root { --sidebar-w: 260px; }
-
   .assess-q-card { padding: 20px 18px; }
   .assess-q-text { font-size: 14px; }
-
   .modal-box { padding: 24px 20px; }
   .modal-actions { flex-direction: column; }
   .modal-actions button { width: 100%; justify-content: center; }
@@ -432,6 +399,16 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);-webkit-font
 /* ── Verification view ── */
 .verify-step{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;}
 .verify-step-num{width:28px;height:28px;border-radius:50%;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+/* ── Credentials view ── */
+.platform-row{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);text-decoration:none;transition:background 0.15s;cursor:pointer;}
+.platform-row:last-child{border-bottom:none;}
+.platform-row:hover{background:var(--surface2);}
+.platform-logo{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.cred-field-row{display:flex;gap:8px;align-items:center;margin-bottom:16px;}
+.cred-display{flex:1;height:44px;background:#fafafa;border:1.5px solid var(--border2);border-radius:var(--r-sm);color:#000;font-family:var(--sans);font-size:14px;padding:0 14px;display:flex;align-items:center;font-weight:600;user-select:all;}
+.copy-btn{height:44px;padding:0 16px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:12px;font-weight:700;color:var(--sub);cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.copy-btn:hover{border-color:#000;color:#000;}
+.copy-btn.copied{background:#000;color:#fff;border-color:#000;}
 `;
 
 const getInitials = (n) => {
@@ -458,6 +435,7 @@ const I = ({ n, s = 16, c = "currentColor" }) => {
     award: <><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></>,
     clipboard: <><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></>,
     shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>,
+    key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></>,
   };
   return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[n]}</svg>;
 };
@@ -515,6 +493,90 @@ const ASSESSMENT_META = {
   math: { icon: "🔢", label: "Mathematics", desc: "Algebra, geometry, statistics & problem solving", color: "#0a0a0a" },
   stem: { icon: "🔬", label: "STEM", desc: "Science, technology, engineering & biology", color: "#111827" },
 };
+
+// ── AI Job Platforms ──────────────────────────────────────────────────────────
+const AI_JOB_PLATFORMS = [
+  {
+    name: "Scale AI",
+    url: "https://scale.com/jobs",
+    logo: "⚖️",
+    color: "#6C5CE7",
+    desc: "Data annotation & AI training tasks",
+    tag: "Top Platform",
+  },
+  {
+    name: "Remotasks",
+    url: "https://www.remotasks.com",
+    logo: "🎯",
+    color: "#00B894",
+    desc: "Flexible annotation & labeling work",
+    tag: "Beginner Friendly",
+  },
+  {
+    name: "Appen",
+    url: "https://appen.com/jobs/",
+    logo: "🔵",
+    color: "#0984E3",
+    desc: "AI data collection & quality review",
+    tag: "Global",
+  },
+  {
+    name: "Outlier AI",
+    url: "https://outlier.ai/apply",
+    logo: "✦",
+    color: "#E17055",
+    desc: "RLHF & model evaluation projects",
+    tag: "High Pay",
+  },
+  {
+    name: "DataAnnotation.tech",
+    url: "https://dataannotation.tech",
+    logo: "📊",
+    color: "#FDCB6E",
+    desc: "Coding, writing & AI feedback tasks",
+    tag: "Popular",
+  },
+  {
+    name: "Surge AI",
+    url: "https://app.surgehq.ai",
+    logo: "⚡",
+    color: "#F39C12",
+    desc: "NLP labeling & prompt writing",
+    tag: "Specialized",
+  },
+  {
+    name: "Toloka",
+    url: "https://toloka.ai/tolokers/",
+    logo: "🌐",
+    color: "#2196F3",
+    desc: "Crowdsourced AI data tasks",
+    tag: "Global",
+  },
+  {
+    name: "Labelbox",
+    url: "https://labelbox.com/careers/",
+    logo: "🏷️",
+    color: "#8E44AD",
+    desc: "Enterprise data labeling platform",
+    tag: "Enterprise",
+  },
+  {
+    name: "Clickworker",
+    url: "https://www.clickworker.com/become-a-clickworker/",
+    logo: "🖱️",
+    color: "#27AE60",
+    desc: "Micro-tasks including text & image work",
+    tag: "Micro-tasks",
+  },
+  {
+    name: "Prolific",
+    url: "https://www.prolific.com",
+    logo: "🧪",
+    color: "#E74C3C",
+    desc: "Research studies & AI participant tasks",
+    tag: "Academic",
+  },
+];
 
 
 // ── Verification View ─────────────────────────────────────────────────────────
@@ -654,6 +716,253 @@ function VerificationView() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ── Credentials View ──────────────────────────────────────────────────────────
+function CredentialsView() {
+  const { user } = useAuth();
+  const [creds, setCreds] = useState({ lixeen_email: null, lixeen_password: null });
+  const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [copied, setCopied] = useState("");
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from("profiles")
+      .select("lixeen_email, lixeen_password")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setCreds({
+          lixeen_email: data?.lixeen_email ?? null,
+          lixeen_password: data?.lixeen_password ?? null,
+        });
+        setLoading(false);
+      });
+  }, [user?.id]);
+
+  // Realtime: update credentials as soon as admin assigns them
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase.channel("creds-" + user.id)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` }, (payload) => {
+        setCreds({
+          lixeen_email: payload.new?.lixeen_email ?? null,
+          lixeen_password: payload.new?.lixeen_password ?? null,
+        });
+      }).subscribe();
+    return () => supabase.removeChannel(ch);
+  }, [user?.id]);
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(label);
+      setTimeout(() => setCopied(""), 2200);
+    });
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px", gap: 12, color: "var(--muted)" }}>
+        <div style={{ width: 20, height: 20, border: "2.5px solid var(--border2)", borderTopColor: "#000", borderRadius: "50%", animation: "spin 0.75s linear infinite" }} />
+        Loading credentials…
+      </div>
+    );
+  }
+
+  const hasCredentials = !!creds.lixeen_email;
+
+  return (
+    <div style={{ maxWidth: 680, margin: "0 auto" }}>
+
+      {/* ── Lixeen Credentials Card ── */}
+      <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
+        {/* Dark header */}
+        <div style={{ background: "#0a0a0a", padding: "24px 28px", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12,
+            background: "rgba(200,240,38,0.15)", border: "1px solid rgba(200,240,38,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0,
+          }}>🪪</div>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 3 }}>Lixeen Credentials</div>
+            <div style={{ fontSize: 12, color: "#888" }}>Your assigned platform login for AI training platforms</div>
+          </div>
+        </div>
+
+        <div style={{ padding: "24px 28px" }}>
+          {!hasCredentials ? (
+            /* Pending state */
+            <div style={{ textAlign: "center", padding: "20px 0" }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "var(--surface2)", border: "1px solid var(--border2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 24, margin: "0 auto 16px",
+              }}>⏳</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#000", marginBottom: 8 }}>Credentials not yet assigned</div>
+              <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.7, maxWidth: 340, margin: "0 auto 20px" }}>
+                An administrator will assign your Lixeen email and password shortly. They'll appear here automatically once ready.
+              </div>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "#fffbeb", border: "1px solid #fde68a",
+                borderRadius: 8, padding: "10px 16px", fontSize: 13, color: "#92400e",
+              }}>
+                <span>📧</span> Questions? <a href="mailto:support@lixeen.com" style={{ color: "#92400e", fontWeight: 600 }}>support@lixeen.com</a>
+              </div>
+            </div>
+          ) : (
+            /* Credentials available */
+            <>
+              <div style={{
+                fontSize: 12, color: "#555",
+                background: "#fffbeb", border: "1px solid #fde68a",
+                borderRadius: 8, padding: "10px 14px", marginBottom: 22,
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span>🔒</span> Keep these credentials private. Do not share them with anyone outside Lixeen.
+              </div>
+
+              {/* Email row */}
+              <div style={{ marginBottom: 6 }}>
+                <div className="field-label">Lixeen Email Address</div>
+                <div className="cred-field-row">
+                  <div className="cred-display">{creds.lixeen_email}</div>
+                  <button
+                    className={`copy-btn${copied === "email" ? " copied" : ""}`}
+                    onClick={() => copyToClipboard(creds.lixeen_email, "email")}
+                  >
+                    {copied === "email" ? "✓ Copied!" : "📋 Copy"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Password row */}
+              {creds.lixeen_password && (
+                <div style={{ marginBottom: 6 }}>
+                  <div className="field-label">Password</div>
+                  <div className="cred-field-row">
+                    <div
+                      className="cred-display"
+                      style={{
+                        letterSpacing: showPassword ? "normal" : "0.18em",
+                        fontFamily: showPassword ? "var(--sans)" : "monospace",
+                        fontSize: showPassword ? 14 : 16,
+                      }}
+                    >
+                      {showPassword ? creds.lixeen_password : "•".repeat(Math.min(creds.lixeen_password.length, 16))}
+                    </div>
+                    <button
+                      className="copy-btn"
+                      onClick={() => setShowPassword(s => !s)}
+                      style={{ padding: "0 12px", minWidth: 44 }}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? "🙈" : "👁️"}
+                    </button>
+                    <button
+                      className={`copy-btn${copied === "password" ? " copied" : ""}`}
+                      onClick={() => copyToClipboard(creds.lixeen_password, "password")}
+                    >
+                      {copied === "password" ? "✓ Copied!" : "📋 Copy"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{
+                marginTop: 18, padding: "12px 16px",
+                background: "var(--surface2)", border: "1px solid var(--border2)",
+                borderRadius: 8, fontSize: 12, color: "var(--muted)", lineHeight: 1.6,
+                display: "flex", alignItems: "flex-start", gap: 8,
+              }}>
+                <span style={{ flexShrink: 0 }}>💡</span>
+                Use these credentials when registering or logging into any of the AI training platforms listed below.
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── AI Job Platforms Card ── */}
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <div className="card-title">AI Training Job Platforms</div>
+            <div className="card-sub">Apply to these platforms to find AI training & annotation work</div>
+          </div>
+          <span style={{
+            fontSize: 11, fontWeight: 700,
+            background: "var(--surface2)", border: "1px solid var(--border2)",
+            borderRadius: "var(--r-pill)", padding: "4px 10px", color: "var(--muted)",
+            flexShrink: 0,
+          }}>
+            {AI_JOB_PLATFORMS.length} platforms
+          </span>
+        </div>
+
+        <div style={{ padding: "4px 0" }}>
+          {AI_JOB_PLATFORMS.map((platform, i) => (
+            <a
+              key={platform.name}
+              href={platform.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="platform-row"
+            >
+              {/* Logo */}
+              <div
+                className="platform-logo"
+                style={{
+                  background: platform.color + "18",
+                  border: `1.5px solid ${platform.color}35`,
+                }}
+              >
+                {platform.logo}
+              </div>
+
+              {/* Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#000" }}>{platform.name}</span>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700,
+                    background: platform.color + "18",
+                    color: platform.color,
+                    border: `1px solid ${platform.color}30`,
+                    borderRadius: "var(--r-pill)",
+                    padding: "2px 8px",
+                    flexShrink: 0,
+                  }}>
+                    {platform.tag}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>{platform.desc}</div>
+              </div>
+
+              {/* Arrow */}
+              <div style={{ flexShrink: 0, color: "#bbb", fontSize: 18, fontWeight: 300 }}>→</div>
+            </a>
+          ))}
+        </div>
+
+        {/* Footer note */}
+        <div style={{
+          padding: "14px 22px",
+          borderTop: "1px solid var(--border)",
+          background: "var(--surface2)",
+          borderRadius: "0 0 var(--r-card) var(--r-card)",
+          fontSize: 12, color: "var(--muted)", lineHeight: 1.6,
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span>ℹ️</span>
+          Lixeen is not affiliated with these platforms. Links are provided as a resource for AI trainers seeking additional work.
+        </div>
+      </div>
     </div>
   );
 }
@@ -1445,16 +1754,14 @@ export default function Dashboard() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [availableCount, setAvailableCount] = useState(null);
   const [userState, setUserState] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false); // ← mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── projects_locked state ──
   const [projectsLocked, setProjectsLocked] = useState(false);
   const [lockLoading, setLockLoading] = useState(true);
 
-  // Close sidebar on outside click / route change
   const closeSidebar = () => setSidebarOpen(false);
 
-  // Load lock status + state on mount
   useEffect(() => {
     if (!user?.id) return;
     supabase.from("profiles").select("state, projects_locked").eq("id", user.id).single().then(({ data }) => {
@@ -1523,7 +1830,7 @@ export default function Dashboard() {
       return;
     }
     setView(id);
-    closeSidebar(); // ← auto-close sidebar on nav on mobile
+    closeSidebar();
   };
 
   const goToVerification = () => { setView("verification"); closeSidebar(); };
@@ -1535,6 +1842,7 @@ export default function Dashboard() {
     { id: "tasks", label: "Projects", icon: "tasks", badge: !projectsLocked && availableCount !== null && availableCount > 0 ? String(availableCount) : null, lockable: true },
     { id: "payments", label: "Payments", icon: "wallet" },
     { id: "assessment", label: "Assessments", icon: "clipboard", lockable: true },
+    { id: "credentials", label: "Credentials", icon: "key" },
     { id: "verification", label: "Verification", icon: "shield" },
     { id: "profile", label: "Profile", icon: "user" },
     { section: "Account" },
@@ -1551,6 +1859,7 @@ export default function Dashboard() {
     settings: ["Settings", "Platform settings and preferences"],
     assessment: ["Assessments", "Test your knowledge in English, Math, and STEM"],
     verification: ["Verification", "Verify your identity to unlock full platform access"],
+    credentials: ["Credentials", "Your Lixeen login and AI job platforms"],
   };
   const [title, subtitle] = titles[view] || titles.overview;
 
@@ -1631,7 +1940,6 @@ export default function Dashboard() {
 
         <div className="main">
           <div className="topbar">
-            {/* Hamburger — mobile only */}
             <button
               className={`topbar-hamburger${sidebarOpen ? " open" : ""}`}
               onClick={() => setSidebarOpen(o => !o)}
@@ -1640,13 +1948,11 @@ export default function Dashboard() {
               <span /><span /><span />
             </button>
 
-            {/* Logo — mobile only, shown in topbar when sidebar is hidden */}
             <Link to="/" className="topbar-logo-mobile">
               <div className="nav-logo-mark"><LogoMark size={14} /></div>
               <span className="nav-logo-name">Lixeen</span>
             </Link>
 
-            {/* Desktop title */}
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span className="topbar-title">{title}</span>
               <span className="topbar-sub">— {subtitle}</span>
@@ -1682,6 +1988,7 @@ export default function Dashboard() {
                 : <AssessmentView initialTab={assessmentTab} onSubTabChange={setAssessmentTab} />
             )}
             {view === "verification" && <VerificationView />}
+            {view === "credentials" && <CredentialsView />}
             {view === "settings" && (
               <div className="card"><div className="card-body"><div className="empty"><div className="empty-icon">⚙️</div><div className="empty-title">Settings</div><div className="empty-desc">Platform settings and advanced configuration options.<br />More options coming soon.</div></div></div></div>
             )}

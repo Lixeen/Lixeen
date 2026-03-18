@@ -66,6 +66,7 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
 .badge-red{background:var(--red-bg);color:var(--red);border:1px solid #ffd5d5;}
 .badge-grey{background:var(--surface2);color:var(--muted);border:1px solid var(--border2);}
 .badge-blue{background:#eef4ff;color:#1a4a9a;border:1px solid #b8ccf0;}
+.badge-purple{background:#f5f0ff;color:#6b21a8;border:1px solid #d8b4fe;}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-sm);font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:opacity 0.15s;}
 .btn-black{background:#000;color:#fff;} .btn-black:hover{opacity:0.8;}
 .btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--border2);} .btn-outline:hover{border-color:#999;background:var(--surface2);}
@@ -105,6 +106,11 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
 .field-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;color:var(--text);background:#fff;outline:none;resize:vertical;min-height:80px;transition:border-color 0.15s;}
 .field-textarea:focus{border-color:#000;}
 .field-select{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;color:var(--text);background:#fff;outline:none;}
+/* ── Credentials section ── */
+.creds-section{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:16px;margin-bottom:20px;}
+.creds-row{display:flex;gap:8px;align-items:center;margin-top:6px;}
+.creds-display{flex:1;padding:9px 12px;background:#fff;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;font-weight:600;color:#000;font-family:var(--sans);letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.creds-display.empty{color:var(--muted);font-weight:400;font-style:italic;}
 `;
 
 const Icon = ({ n, s = 14 }) => {
@@ -122,6 +128,10 @@ const Icon = ({ n, s = 14 }) => {
         send: <><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></>,
         notifs: <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /><line x1="9" y1="10" x2="15" y2="10" /><line x1="12" y1="7" x2="12" y2="13" /></>,
         eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>,
+        eyeOff: <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></>,
+        key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></>,
+        copy: <><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></>,
+        trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></>,
     };
     return (
         <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -156,40 +166,26 @@ function Toast({ msg, onDone }) {
     return <div className="toast">{msg}</div>;
 }
 
-// ── Send DB notification + email together ─────────────────────────────────────
-// Inserts a row into notifications, then calls the edge function for email.
-// userId is NOT passed to the edge fn to avoid a duplicate DB insert.
 async function sendEmailAndNotification({ userId, to, userName, type, title, message, link, emailExtras = {} }) {
-
-    // 1. Insert notification into DB
     const { error: dbErr } = await supabase.from("notifications").insert({
-        user_id: userId,
-        type,
-        title,
-        message,
-        read: false,
+        user_id: userId, type, title, message, read: false,
         ...(link ? { link } : {}),
     });
     if (dbErr) console.error("[notifications] insert error:", dbErr.message);
-
-    // 2. Send email via edge function (no userId = no second DB insert)
     try {
         const { error } = await supabase.functions.invoke("send-email", {
             body: {
-                to, type, userName,
-                subject: title, title, body: message,
+                to, type, userName, subject: title, title, body: message,
                 ...(link ? { ctaUrl: link, ctaLabel: "View" } : {}),
                 ...emailExtras,
             },
         });
         if (error) console.error("[send-email] error:", error);
-        else console.log("[send-email] ✓", type, "→", to);
     } catch (err) {
         console.error("[send-email] failed:", err);
     }
 }
 
-// ── Notification Compose Modal ───────────────────────────────────────────────
 const NOTIF_TYPES = [
     { value: "general", label: "📢 General" },
     { value: "project_assigned", label: "🚀 Project Assigned" },
@@ -201,56 +197,40 @@ const NOTIF_TYPES = [
 
 function NotificationModal({ profile, onClose, onSent }) {
     const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email;
-    const [tab, setTab] = useState("email"); // "email" | "notif"
+    const [tab, setTab] = useState("email");
     const [form, setForm] = useState({
-        type: "announcement",
-        subject: "",
-        title: "",
-        body: "",
-        ctaLabel: "Go to Dashboard",
-        ctaUrl: "https://app.lixeen.com/dashboard",
-        // notif-only
-        message: "",
-        link: "",
+        type: "announcement", subject: "", title: "", body: "",
+        ctaLabel: "Go to Dashboard", ctaUrl: "https://app.lixeen.com/dashboard",
+        message: "", link: "",
     });
     const [sending, setSending] = useState(false);
     const [err, setErr] = useState("");
-
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
     const handleSend = async () => {
         if (tab === "email") {
             if (!form.subject.trim()) { setErr("Subject is required."); return; }
-            if (!form.title.trim())   { setErr("Title is required."); return; }
-            if (!form.body.trim())    { setErr("Body is required."); return; }
+            if (!form.title.trim()) { setErr("Title is required."); return; }
+            if (!form.body.trim()) { setErr("Body is required."); return; }
             setSending(true); setErr("");
             try {
                 const { error } = await supabase.functions.invoke("send-email", {
                     body: {
-                        to: profile.email,
-                        userName: name,
-                        type: form.type,
-                        subject: form.subject.trim(),
-                        title: form.title.trim(),
-                        body: form.body.trim(),
+                        to: profile.email, userName: name, type: form.type,
+                        subject: form.subject.trim(), title: form.title.trim(), body: form.body.trim(),
                         ...(form.ctaLabel.trim() && form.ctaUrl.trim()
-                            ? { ctaLabel: form.ctaLabel.trim(), ctaUrl: form.ctaUrl.trim() }
-                            : {}),
+                            ? { ctaLabel: form.ctaLabel.trim(), ctaUrl: form.ctaUrl.trim() } : {}),
                     },
                 });
                 if (error) { setErr("Failed to send email: " + error.message); setSending(false); return; }
             } catch (e) { setErr("Error: " + e.message); setSending(false); return; }
         } else {
-            if (!form.title.trim())   { setErr("Title is required."); return; }
+            if (!form.title.trim()) { setErr("Title is required."); return; }
             if (!form.message.trim()) { setErr("Message is required."); return; }
             setSending(true); setErr("");
             await sendEmailAndNotification({
-                userId: profile.id,
-                to: profile.email,
-                userName: name,
-                type: form.type,
-                title: form.title.trim(),
-                message: form.message.trim(),
+                userId: profile.id, to: profile.email, userName: name, type: form.type,
+                title: form.title.trim(), message: form.message.trim(),
                 link: form.link.trim() || null,
             });
         }
@@ -274,79 +254,36 @@ function NotificationModal({ profile, onClose, onSent }) {
                     </div>
                     <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
                 </div>
-
-                {/* Tabs */}
                 <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "0 20px" }}>
                     <button style={tabStyle("email")} onClick={() => { setTab("email"); setErr(""); }}>✉️ Email</button>
                     <button style={tabStyle("notif")} onClick={() => { setTab("notif"); setErr(""); }}>🔔 Notification</button>
                 </div>
-
                 <div className="notif-modal-body">
-                    {/* Type row — shared */}
                     <div>
                         <label className="field-label">Type</label>
                         <select className="field-select" value={form.type} onChange={e => set("type", e.target.value)}>
                             {NOTIF_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </div>
-
                     {tab === "email" ? (<>
-                        <div>
-                            <label className="field-label">Subject</label>
-                            <input className="field-input" placeholder="e.g. Getting Started with Lixeen"
-                                value={form.subject} onChange={e => set("subject", e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="field-label">Title <span style={{ fontWeight:400,textTransform:"none",letterSpacing:0 }}>(heading in email)</span></label>
-                            <input className="field-input" placeholder="e.g. Welcome to Lixeen!"
-                                value={form.title} onChange={e => set("title", e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="field-label">Body</label>
-                            <textarea className="field-textarea" placeholder="Write the email content… (supports basic HTML)"
-                                value={form.body} onChange={e => set("body", e.target.value)} style={{ minHeight: 90 }} />
-                        </div>
+                        <div><label className="field-label">Subject</label><input className="field-input" placeholder="e.g. Getting Started with Lixeen" value={form.subject} onChange={e => set("subject", e.target.value)} /></div>
+                        <div><label className="field-label">Title <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(heading in email)</span></label><input className="field-input" placeholder="e.g. Welcome to Lixeen!" value={form.title} onChange={e => set("title", e.target.value)} /></div>
+                        <div><label className="field-label">Body</label><textarea className="field-textarea" placeholder="Write the email content…" value={form.body} onChange={e => set("body", e.target.value)} style={{ minHeight: 90 }} /></div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 10 }}>
-                            <div>
-                                <label className="field-label">Button label <span style={{ fontWeight:400,textTransform:"none",letterSpacing:0 }}>(optional)</span></label>
-                                <input className="field-input" placeholder="Go to Dashboard"
-                                    value={form.ctaLabel} onChange={e => set("ctaLabel", e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="field-label">Button URL <span style={{ fontWeight:400,textTransform:"none",letterSpacing:0 }}>(optional)</span></label>
-                                <input className="field-input" placeholder="https://app.lixeen.com/dashboard"
-                                    value={form.ctaUrl} onChange={e => set("ctaUrl", e.target.value)} />
-                            </div>
+                            <div><label className="field-label">Button label <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></label><input className="field-input" placeholder="Go to Dashboard" value={form.ctaLabel} onChange={e => set("ctaLabel", e.target.value)} /></div>
+                            <div><label className="field-label">Button URL <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></label><input className="field-input" placeholder="https://app.lixeen.com/dashboard" value={form.ctaUrl} onChange={e => set("ctaUrl", e.target.value)} /></div>
                         </div>
                     </>) : (<>
-                        <div>
-                            <label className="field-label">Title</label>
-                            <input className="field-input" placeholder="e.g. Your submission was accepted"
-                                value={form.title} onChange={e => set("title", e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="field-label">Message</label>
-                            <textarea className="field-textarea" placeholder="Write the notification body…"
-                                value={form.message} onChange={e => set("message", e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="field-label">Link <span style={{ fontWeight:400,textTransform:"none",letterSpacing:0 }}>(optional)</span></label>
-                            <input className="field-input" placeholder="e.g. /dashboard#tasks/available"
-                                value={form.link} onChange={e => set("link", e.target.value)} />
-                        </div>
+                        <div><label className="field-label">Title</label><input className="field-input" placeholder="e.g. Your submission was accepted" value={form.title} onChange={e => set("title", e.target.value)} /></div>
+                        <div><label className="field-label">Message</label><textarea className="field-textarea" placeholder="Write the notification body…" value={form.message} onChange={e => set("message", e.target.value)} /></div>
+                        <div><label className="field-label">Link <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></label><input className="field-input" placeholder="e.g. /dashboard#tasks/available" value={form.link} onChange={e => set("link", e.target.value)} /></div>
                     </>)}
-
-                    {err && (
-                        <div style={{ fontSize: 12, color: "var(--red)", background: "var(--red-bg)", border: "1px solid #ffd5d5", borderRadius: "var(--r-sm)", padding: "9px 12px" }}>
-                            ⚠ {err}
-                        </div>
-                    )}
+                    {err && <div style={{ fontSize: 12, color: "var(--red)", background: "var(--red-bg)", border: "1px solid #ffd5d5", borderRadius: "var(--r-sm)", padding: "9px 12px" }}>⚠ {err}</div>}
                 </div>
                 <div className="notif-modal-foot">
                     <button className="btn btn-outline" onClick={onClose}>Cancel</button>
                     <button className="btn btn-black" onClick={handleSend} disabled={sending}>
-                        <Icon n="send" s={13} />
-                        {sending ? "Sending…" : tab === "email" ? "Send Email" : "Send Notification"}
+                        <Icon n="send" s={13} />{sending ? "Sending…" : tab === "email" ? "Send Email" : "Send Notification"}
                     </button>
                 </div>
             </div>
@@ -354,12 +291,138 @@ function NotificationModal({ profile, onClose, onSent }) {
     );
 }
 
+// ── Credentials Section (inside UserPanel) ───────────────────────────────────
+function CredentialsSection({ profile, onToast }) {
+    const [email, setEmail] = useState(profile.lixeen_email ?? "");
+    const [password, setPassword] = useState(profile.lixeen_password ?? "");
+    const [showPw, setShowPw] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [clearing, setClearing] = useState(false);
+
+    const hasCredentials = !!(profile.lixeen_email);
+
+    const handleSave = async () => {
+        if (!email.trim()) { onToast("❌ Email is required."); return; }
+        if (!password.trim()) { onToast("❌ Password is required."); return; }
+        setSaving(true);
+        const { error } = await supabase.from("profiles")
+            .update({ lixeen_email: email.trim(), lixeen_password: password.trim() })
+            .eq("id", profile.id);
+        setSaving(false);
+        if (error) { onToast("❌ Failed to save: " + error.message); return; }
+        // Update the local profile object so re-opening shows new values
+        profile.lixeen_email = email.trim();
+        profile.lixeen_password = password.trim();
+        onToast("✓ Credentials saved for " + (profile.first_name || profile.email));
+    };
+
+    const handleClear = async () => {
+        if (!window.confirm("Clear credentials for this user?")) return;
+        setClearing(true);
+        const { error } = await supabase.from("profiles")
+            .update({ lixeen_email: null, lixeen_password: null })
+            .eq("id", profile.id);
+        setClearing(false);
+        if (error) { onToast("❌ Failed to clear: " + error.message); return; }
+        setEmail("");
+        setPassword("");
+        profile.lixeen_email = null;
+        profile.lixeen_password = null;
+        onToast("✓ Credentials cleared");
+    };
+
+    return (
+        <div className="creds-section">
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Icon n="key" s={14} />
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>Lixeen Credentials</div>
+                </div>
+                {hasCredentials
+                    ? <span className="badge badge-green">✓ Assigned</span>
+                    : <span className="badge badge-grey">Not assigned</span>
+                }
+            </div>
+
+            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12, lineHeight: 1.5 }}>
+                These credentials are shown to the user in their Credentials tab. They use them to register on AI training platforms.
+            </div>
+
+            {/* Email field */}
+            <div style={{ marginBottom: 10 }}>
+                <label className="field-label">Lixeen Email</label>
+                <input
+                    className="field-input"
+                    placeholder="e.g. john.doe@lixeen.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    style={{ background: "#fff" }}
+                />
+            </div>
+
+            {/* Password field */}
+            <div style={{ marginBottom: 14 }}>
+                <label className="field-label">Password</label>
+                <div style={{ display: "flex", gap: 6 }}>
+                    <input
+                        className="field-input"
+                        type={showPw ? "text" : "password"}
+                        placeholder="Assign a password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        style={{ flex: 1, background: "#fff" }}
+                    />
+                    <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => setShowPw(s => !s)}
+                        title={showPw ? "Hide" : "Show"}
+                        style={{ flexShrink: 0, padding: "0 10px" }}
+                    >
+                        <Icon n={showPw ? "eyeOff" : "eye"} s={13} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 8 }}>
+                <button
+                    className="btn btn-black btn-sm"
+                    style={{ flex: 1, justifyContent: "center" }}
+                    onClick={handleSave}
+                    disabled={saving}
+                >
+                    <Icon n="key" s={12} />
+                    {saving ? "Saving…" : hasCredentials ? "Update Credentials" : "Assign Credentials"}
+                </button>
+                {hasCredentials && (
+                    <button
+                        className="btn btn-danger btn-sm"
+                        onClick={handleClear}
+                        disabled={clearing}
+                        title="Clear credentials"
+                    >
+                        <Icon n="trash" s={12} />
+                        {clearing ? "…" : "Clear"}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ── User Detail Panel ────────────────────────────────────────────────────────
-function UserPanel({ profile, responses, onClose, onSave }) {
+function UserPanel({ profile, responses, onClose, onSave, onToast }) {
     const [selected, setSelected] = useState(new Set(profile.available_projects ?? []));
     const [saving, setSaving] = useState(false);
     const [showNotif, setShowNotif] = useState(false);
     const [notifSent, setNotifSent] = useState(false);
+    const [locked, setLocked] = useState(!!profile.projects_locked);
+    const [lockSaving, setLockSaving] = useState(false);
+    const [verifyLink, setVerifyLink] = useState(profile.verification_link ?? "");
+    const [isVerified, setIsVerified] = useState(!!profile.is_verified);
+    const [verifyLinkSaving, setVerifyLinkSaving] = useState(false);
+    const [verifyLinkSaved, setVerifyLinkSaved] = useState(false);
 
     const toggle = (table) => {
         setSelected(prev => {
@@ -371,77 +434,42 @@ function UserPanel({ profile, responses, onClose, onSave }) {
 
     const handleSave = async () => {
         setSaving(true);
-
         const prevProjects = new Set(profile.available_projects ?? []);
         const nextProjects = [...selected];
         const userName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email;
-
         const newlyGranted = ALL_PROJECTS.filter(p => selected.has(p.table) && !prevProjects.has(p.table));
         const newlyRevoked = ALL_PROJECTS.filter(p => !selected.has(p.table) && prevProjects.has(p.table));
-
-        // 1. Save profile change
-        const { error } = await supabase
-            .from("profiles")
-            .update({ available_projects: nextProjects })
-            .eq("id", profile.id);
-
+        const { error } = await supabase.from("profiles").update({ available_projects: nextProjects }).eq("id", profile.id);
         if (!error) {
-            // 2. Notify + email for each newly granted project
-            await Promise.all(newlyGranted.map(p =>
-                sendEmailAndNotification({
-                    userId: profile.id,
-                    to: profile.email,
-                    userName,
-                    type: "project_assigned",
-                    title: `You've been assigned to ${p.codename}`,
-                    message: `You now have access to ${p.codename} — ${p.title}. Log in to your dashboard to start tasking.`,
-                    link: "/dashboard#tasks/available",
-                    emailExtras: { projectCodename: p.codename, projectTitle: p.title },
-                })
-            ));
-
-            // 3. Notify + email for each newly revoked project
-            await Promise.all(newlyRevoked.map(p =>
-                sendEmailAndNotification({
-                    userId: profile.id,
-                    to: profile.email,
-                    userName,
-                    type: "project_revoked",
-                    title: `Access to ${p.codename} has been removed`,
-                    message: `Your access to ${p.codename} has been removed by an administrator.`,
-                    link: "/dashboard#tasks/available",
-                    emailExtras: { projectCodename: p.codename },
-                })
-            ));
+            await Promise.all(newlyGranted.map(p => sendEmailAndNotification({
+                userId: profile.id, to: profile.email, userName, type: "project_assigned",
+                title: `You've been assigned to ${p.codename}`,
+                message: `You now have access to ${p.codename} — ${p.title}. Log in to your dashboard to start tasking.`,
+                link: "/dashboard#tasks/available",
+                emailExtras: { projectCodename: p.codename, projectTitle: p.title },
+            })));
+            await Promise.all(newlyRevoked.map(p => sendEmailAndNotification({
+                userId: profile.id, to: profile.email, userName, type: "project_revoked",
+                title: `Access to ${p.codename} has been removed`,
+                message: `Your access to ${p.codename} has been removed by an administrator.`,
+                link: "/dashboard#tasks/available",
+                emailExtras: { projectCodename: p.codename },
+            })));
         }
-
         setSaving(false);
         onSave(profile.id, nextProjects, error);
     };
 
-    const [locked, setLocked] = useState(!!profile.projects_locked);
-    const [lockSaving, setLockSaving] = useState(false);
-
-    // ── Verification link ──────────────────────────────────────────────────────
-    const [verifyLink, setVerifyLink] = useState(profile.verification_link ?? "");
-    const [isVerified, setIsVerified] = useState(!!profile.is_verified);
-    const [verifyLinkSaving, setVerifyLinkSaving] = useState(false);
-    const [verifyLinkSaved, setVerifyLinkSaved] = useState(false);
-
     const handleSaveVerifyLink = async () => {
         setVerifyLinkSaving(true);
-        const { error } = await supabase.from("profiles")
-            .update({ verification_link: verifyLink.trim() || null })
-            .eq("id", profile.id);
+        const { error } = await supabase.from("profiles").update({ verification_link: verifyLink.trim() || null }).eq("id", profile.id);
         setVerifyLinkSaving(false);
         if (!error) { setVerifyLinkSaved(true); setTimeout(() => setVerifyLinkSaved(false), 2500); }
     };
 
     const handleToggleVerified = async () => {
         const next = !isVerified;
-        const { error } = await supabase.from("profiles")
-            .update({ is_verified: next })
-            .eq("id", profile.id);
+        const { error } = await supabase.from("profiles").update({ is_verified: next }).eq("id", profile.id);
         if (!error) setIsVerified(next);
     };
 
@@ -453,10 +481,7 @@ function UserPanel({ profile, responses, onClose, onSave }) {
             setLocked(newLocked);
             const userName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email;
             await sendEmailAndNotification({
-                userId: profile.id,
-                to: profile.email,
-                userName,
-                type: "general",
+                userId: profile.id, to: profile.email, userName, type: "general",
                 title: newLocked ? "Action Required: Submit Tax Documents" : "Projects Unlocked",
                 message: newLocked
                     ? "Your projects page has been locked. Please submit your tax documents to regain access."
@@ -473,166 +498,138 @@ function UserPanel({ profile, responses, onClose, onSave }) {
 
     return (
         <>
-        <div className="detail-overlay" onClick={onClose}>
-            <div className="detail-panel" onClick={e => e.stopPropagation()}>
-                <div className="detail-header">
-                    <div>
-                        <div style={{ fontSize: 15, fontWeight: 700 }}>{name}</div>
-                        <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                            {profile.email}{profile.state ? ` · 📍 ${profile.state}` : ""}
-                        </div>
-                    </div>
-                    <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
-                </div>
-
-                <div className="detail-body">
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
-                        {[
-                            { label: "Responses", val: userResponses.filter(r => !r.skipped).length },
-                            { label: "Skipped", val: userResponses.filter(r => r.skipped).length },
-                            { label: "Earned", val: "$" + earned.toFixed(2) },
-                        ].map(s => (
-                            <div key={s.label} style={{ background: "var(--surface2)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted)", marginBottom: 4 }}>{s.label}</div>
-                                <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.val}</div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Recent Submissions</div>
-                    {userResponses.length === 0 ? (
-                        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20, padding: "12px 0" }}>No submissions yet.</div>
-                    ) : (
-                        <div style={{ border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", overflow: "hidden", marginBottom: 24 }}>
-                            {userResponses.slice(0, 6).map((r, i) => (
-                                <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderBottom: i < Math.min(userResponses.length, 6) - 1 ? "1px solid var(--border)" : "none", fontSize: 12 }}>
-                                    <div style={{ flex: 1, fontWeight: 600 }}>
-                                        {r.task_table ? r.task_table.replace(/^tasks_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "—"}
-                                    </div>
-                                    <div style={{ color: "var(--muted)" }}>{r.time_spent_secs ? `${Math.floor(r.time_spent_secs / 60)}m ${r.time_spent_secs % 60}s` : "—"}</div>
-                                    <span className={`badge ${r.skipped ? "badge-grey" : "badge-green"}`}>{r.skipped ? "Skipped" : "Submitted"}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* ── Lock Toggle ── */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: locked ? "#fff5f5" : "#f0faf4", border: `1px solid ${locked ? "#ffd5d5" : "#b8e0c8"}`, borderRadius: "var(--r-sm)", marginBottom: 20 }}>
+            <div className="detail-overlay" onClick={onClose}>
+                <div className="detail-panel" onClick={e => e.stopPropagation()}>
+                    <div className="detail-header">
                         <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: locked ? "var(--red)" : "var(--green)" }}>
-                                {locked ? "🔒 Projects Locked" : "🔓 Projects Unlocked"}
-                            </div>
-                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>
-                                {locked ? "User must submit tax documents to access projects." : "User can access their assigned projects."}
+                            <div style={{ fontSize: 15, fontWeight: 700 }}>{name}</div>
+                            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
+                                {profile.email}{profile.state ? ` · 📍 ${profile.state}` : ""}
                             </div>
                         </div>
-                        <button
-                            className={`btn btn-sm ${locked ? "btn-outline" : "btn-danger"}`}
-                            onClick={handleToggleLock}
-                            disabled={lockSaving}
-                            style={{ minWidth: 90 }}
-                        >
-                            {lockSaving ? "Saving…" : locked ? "Unlock" : "Lock Projects"}
-                        </button>
-                    </div>
-
-                    {/* ── Verification Link ── */}
-                    <div style={{ marginBottom: 20, padding: "16px", background: "var(--surface2)", borderRadius: "var(--r-sm)", border: "1px solid var(--border2)" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700 }}>Identity Verification</div>
-                            {isVerified
-                                ? <span className="badge badge-green">✓ Verified</span>
-                                : <span className="badge badge-grey">Not Verified</span>
-                            }
-                        </div>
-
-                        <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 10, lineHeight: 1.5 }}>
-                            Paste the user's unique verification URL (e.g. from Persona, Jumio, or Veriff). The user will see a button linking to this URL in their dashboard.
-                        </div>
-
-                        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                            <input
-                                className="field-input"
-                                style={{ flex: 1 }}
-                                placeholder="https://verify.example.com/session/abc123…"
-                                value={verifyLink}
-                                onChange={e => { setVerifyLink(e.target.value); setVerifyLinkSaved(false); }}
-                            />
-                            <button
-                                className="btn btn-black btn-sm"
-                                onClick={handleSaveVerifyLink}
-                                disabled={verifyLinkSaving}
-                                style={{ whiteSpace: "nowrap" }}
-                            >
-                                {verifyLinkSaving ? "…" : verifyLinkSaved ? "✓ Saved" : "Save Link"}
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <button className="btn btn-outline btn-sm" onClick={() => setShowNotif(true)}>
+                                <Icon n="bell" s={13} /> Message
                             </button>
+                            <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
                         </div>
-
-                        <button
-                            className="btn btn-sm"
-                            onClick={handleToggleVerified}
-                            style={{
-                                background: isVerified ? "var(--red-bg)" : "var(--green-bg)",
-                                color: isVerified ? "var(--red)" : "var(--green)",
-                                border: `1px solid ${isVerified ? "#ffd5d5" : "#b8e0c8"}`,
-                                fontSize: 11,
-                            }}
-                        >
-                            {isVerified ? "✕ Mark as Unverified" : "✓ Mark as Verified"}
-                        </button>
                     </div>
 
-                    {/* ── Project Access ── */}
-                    <div style={{ marginBottom: 20 }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700 }}>Project Access</div>
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())}>Clear all</button>
-                                <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set(ALL_PROJECTS.map(p => p.table)))}>Grant all</button>
-                            </div>
-                        </div>
-
-                        <div className="proj-grid" style={{ marginBottom: 20 }}>
-                            {ALL_PROJECTS.map(p => (
-                                <div key={p.table} className={`proj-toggle${selected.has(p.table) ? " on" : ""}`} onClick={() => toggle(p.table)}>
-                                    <div className="proj-check" />
-                                    <div className="proj-icon">{p.icon}</div>
-                                    <div className="proj-info">
-                                        <div className="proj-codename">{p.codename}</div>
-                                        <div className="proj-title">{p.title}</div>
-                                    </div>
+                    <div className="detail-body">
+                        {/* Stats */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+                            {[
+                                { label: "Responses", val: userResponses.filter(r => !r.skipped).length },
+                                { label: "Skipped", val: userResponses.filter(r => r.skipped).length },
+                                { label: "Earned", val: "$" + earned.toFixed(2) },
+                            ].map(s => (
+                                <div key={s.label} style={{ background: "var(--surface2)", borderRadius: "var(--r-sm)", padding: "12px 14px" }}>
+                                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted)", marginBottom: 4 }}>{s.label}</div>
+                                    <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.val}</div>
                                 </div>
                             ))}
                         </div>
 
-                        <div style={{ display: "flex", gap: 10 }}>
-                            <button className="btn btn-black" style={{ flex: 1, justifyContent: "center" }} onClick={handleSave} disabled={saving}>
-                                {saving ? "Saving…" : "Save project access"}
-                            </button>
-                            <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-                        </div>
-
-                        {notifSent && (
-                            <div style={{ marginTop: 12, padding: "10px 14px", background: "var(--green-bg)", border: "1px solid #b8e0c8", borderRadius: "var(--r-sm)", fontSize: 13, color: "var(--green)", fontWeight: 600 }}>
-                                ✓ Notification sent successfully
+                        {/* Recent Submissions */}
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Recent Submissions</div>
+                        {userResponses.length === 0 ? (
+                            <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20, padding: "12px 0" }}>No submissions yet.</div>
+                        ) : (
+                            <div style={{ border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", overflow: "hidden", marginBottom: 24 }}>
+                                {userResponses.slice(0, 6).map((r, i) => (
+                                    <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderBottom: i < Math.min(userResponses.length, 6) - 1 ? "1px solid var(--border)" : "none", fontSize: 12 }}>
+                                        <div style={{ flex: 1, fontWeight: 600 }}>
+                                            {r.task_table ? r.task_table.replace(/^tasks_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "—"}
+                                        </div>
+                                        <div style={{ color: "var(--muted)" }}>{r.time_spent_secs ? `${Math.floor(r.time_spent_secs / 60)}m ${r.time_spent_secs % 60}s` : "—"}</div>
+                                        <span className={`badge ${r.skipped ? "badge-grey" : "badge-green"}`}>{r.skipped ? "Skipped" : "Submitted"}</span>
+                                    </div>
+                                ))}
                             </div>
                         )}
+
+                        {/* ── Lixeen Credentials ── */}
+                        <CredentialsSection profile={profile} onToast={onToast} />
+
+                        {/* Lock Toggle */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: locked ? "#fff5f5" : "#f0faf4", border: `1px solid ${locked ? "#ffd5d5" : "#b8e0c8"}`, borderRadius: "var(--r-sm)", marginBottom: 20 }}>
+                            <div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: locked ? "var(--red)" : "var(--green)" }}>
+                                    {locked ? "🔒 Projects Locked" : "🔓 Projects Unlocked"}
+                                </div>
+                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>
+                                    {locked ? "User must submit tax documents to access projects." : "User can access their assigned projects."}
+                                </div>
+                            </div>
+                            <button className={`btn btn-sm ${locked ? "btn-outline" : "btn-danger"}`} onClick={handleToggleLock} disabled={lockSaving} style={{ minWidth: 90 }}>
+                                {lockSaving ? "Saving…" : locked ? "Unlock" : "Lock Projects"}
+                            </button>
+                        </div>
+
+                        {/* Verification Link */}
+                        <div style={{ marginBottom: 20, padding: "16px", background: "var(--surface2)", borderRadius: "var(--r-sm)", border: "1px solid var(--border2)" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700 }}>Identity Verification</div>
+                                {isVerified ? <span className="badge badge-green">✓ Verified</span> : <span className="badge badge-grey">Not Verified</span>}
+                            </div>
+                            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 10, lineHeight: 1.5 }}>
+                                Paste the user's unique verification URL. The user will see a button linking to this URL in their dashboard.
+                            </div>
+                            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                                <input className="field-input" style={{ flex: 1 }} placeholder="https://verify.example.com/session/abc123…" value={verifyLink} onChange={e => { setVerifyLink(e.target.value); setVerifyLinkSaved(false); }} />
+                                <button className="btn btn-black btn-sm" onClick={handleSaveVerifyLink} disabled={verifyLinkSaving} style={{ whiteSpace: "nowrap" }}>
+                                    {verifyLinkSaving ? "…" : verifyLinkSaved ? "✓ Saved" : "Save Link"}
+                                </button>
+                            </div>
+                            <button className="btn btn-sm" onClick={handleToggleVerified} style={{ background: isVerified ? "var(--red-bg)" : "var(--green-bg)", color: isVerified ? "var(--red)" : "var(--green)", border: `1px solid ${isVerified ? "#ffd5d5" : "#b8e0c8"}`, fontSize: 11 }}>
+                                {isVerified ? "✕ Mark as Unverified" : "✓ Mark as Verified"}
+                            </button>
+                        </div>
+
+                        {/* Project Access */}
+                        <div style={{ marginBottom: 20 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700 }}>Project Access</div>
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())}>Clear all</button>
+                                    <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set(ALL_PROJECTS.map(p => p.table)))}>Grant all</button>
+                                </div>
+                            </div>
+                            <div className="proj-grid" style={{ marginBottom: 20 }}>
+                                {ALL_PROJECTS.map(p => (
+                                    <div key={p.table} className={`proj-toggle${selected.has(p.table) ? " on" : ""}`} onClick={() => toggle(p.table)}>
+                                        <div className="proj-check" />
+                                        <div className="proj-icon">{p.icon}</div>
+                                        <div className="proj-info">
+                                            <div className="proj-codename">{p.codename}</div>
+                                            <div className="proj-title">{p.title}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ display: "flex", gap: 10 }}>
+                                <button className="btn btn-black" style={{ flex: 1, justifyContent: "center" }} onClick={handleSave} disabled={saving}>
+                                    {saving ? "Saving…" : "Save project access"}
+                                </button>
+                                <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+                            </div>
+                            {notifSent && (
+                                <div style={{ marginTop: 12, padding: "10px 14px", background: "var(--green-bg)", border: "1px solid #b8e0c8", borderRadius: "var(--r-sm)", fontSize: 13, color: "var(--green)", fontWeight: 600 }}>
+                                    ✓ Notification sent successfully
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        {showNotif && (
-            <NotificationModal
-                profile={profile}
-                onClose={() => setShowNotif(false)}
-                onSent={() => {
+            {showNotif && (
+                <NotificationModal profile={profile} onClose={() => setShowNotif(false)} onSent={() => {
                     setShowNotif(false);
                     setNotifSent(true);
                     setTimeout(() => setNotifSent(false), 3000);
-                }}
-            />
-        )}
+                }} />
+            )}
         </>
     );
 }
@@ -672,8 +669,9 @@ function UsersTab({ profiles, responses, loading, onRefresh, onToast }) {
                     <table className="tbl">
                         <thead>
                             <tr>
-                                <th>User</th><th>Email</th><th>State</th><th>Email Confirmed</th><th>ID Verified</th><th>Projects Locked</th><th>Projects Assigned</th>
-                                <th>Submissions</th><th>Earned</th><th></th>
+                                <th>User</th><th>Email</th><th>State</th><th>Email Confirmed</th>
+                                <th>ID Verified</th><th>Projects Locked</th><th>Credentials</th>
+                                <th>Projects</th><th>Submissions</th><th>Earned</th><th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -689,75 +687,46 @@ function UsersTab({ profiles, responses, loading, onRefresh, onToast }) {
                                             <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontFamily: "monospace" }}>{p.id.slice(0, 8)}…</div>
                                         </td>
                                         <td style={{ color: "var(--muted)" }}>{p.email ?? "—"}</td>
+                                        <td>{p.state ? <span style={{ fontSize: 12 }}>📍 {p.state}</span> : <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>}</td>
+                                        <td>{p.email_confirmed ? <span className="badge badge-green">✓ Confirmed</span> : <span className="badge badge-red">Unconfirmed</span>}</td>
+                                        <td>{p.is_verified ? <span className="badge badge-green">✓ Verified</span> : <span className="badge badge-grey">Not verified</span>}</td>
+                                        <td>{p.projects_locked ? <span className="badge badge-red">🔒 Locked</span> : <span className="badge badge-green">🔓 Open</span>}</td>
                                         <td>
-                                            {p.state
-                                                ? <span style={{ fontSize: 12 }}>📍 {p.state}</span>
-                                                : <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>
+                                            {p.lixeen_email
+                                                ? <span className="badge badge-purple">🪪 Assigned</span>
+                                                : <span className="badge badge-grey">None</span>
                                             }
                                         </td>
                                         <td>
-                                            {p.email_confirmed
-                                                ? <span className="badge badge-green">✓ Confirmed</span>
-                                                : <span className="badge badge-red">Unconfirmed</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            {p.is_verified
-                                                ? <span className="badge badge-green">✓ Verified</span>
-                                                : <span className="badge badge-grey">Not verified</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            {p.projects_locked
-                                                ? <span className="badge badge-red">🔒 Locked</span>
-                                                : <span className="badge badge-green">🔓 Open</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            {projCount === 0 ? (
-                                                <span className="badge badge-red">No access</span>
-                                            ) : projCount === ALL_PROJECTS.length ? (
-                                                <span className="badge badge-green">All ({projCount})</span>
-                                            ) : (
-                                                <span className="badge badge-blue">{projCount} project{projCount !== 1 ? "s" : ""}</span>
-                                            )}
+                                            {projCount === 0 ? <span className="badge badge-red">No access</span>
+                                                : projCount === ALL_PROJECTS.length ? <span className="badge badge-green">All ({projCount})</span>
+                                                    : <span className="badge badge-blue">{projCount} project{projCount !== 1 ? "s" : ""}</span>}
                                         </td>
                                         <td>{userResp.filter(r => !r.skipped).length}</td>
                                         <td style={{ fontWeight: 700 }}>${earned.toFixed(2)}</td>
                                         <td>
                                             <div style={{ display: "flex", gap: 6 }}>
-                                                <button className="btn btn-outline btn-sm" onClick={() => setNotifying(p)}>
-                                                    <Icon n="bell" s={11} />
-                                                </button>
-                                                <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>
-                                                    Manage <Icon n="chevR" s={11} />
-                                                </button>
+                                                <button className="btn btn-outline btn-sm" onClick={() => setNotifying(p)}><Icon n="bell" s={11} /></button>
+                                                <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>Manage <Icon n="chevR" s={11} /></button>
                                             </div>
                                         </td>
                                     </tr>
                                 );
                             })}
                             {filtered.length === 0 && (
-                                <tr><td colSpan={8} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No users found.</td></tr>
+                                <tr><td colSpan={11} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No users found.</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             )}
 
-            {selected && (
-                <UserPanel profile={selected} responses={responses} onClose={() => setSelected(null)} onSave={handleSave} />
-            )}
-
+            {selected && <UserPanel profile={selected} responses={responses} onClose={() => setSelected(null)} onSave={handleSave} onToast={onToast} />}
             {notifying && (
-                <NotificationModal
-                    profile={notifying}
-                    onClose={() => setNotifying(null)}
-                    onSent={() => {
-                        setNotifying(null);
-                        onToast("✓ Notification sent to " + ([notifying.first_name, notifying.last_name].filter(Boolean).join(" ") || notifying.email));
-                    }}
-                />
+                <NotificationModal profile={notifying} onClose={() => setNotifying(null)} onSent={() => {
+                    setNotifying(null);
+                    onToast("✓ Notification sent to " + ([notifying.first_name, notifying.last_name].filter(Boolean).join(" ") || notifying.email));
+                }} />
             )}
         </>
     );
@@ -788,8 +757,7 @@ function ResponsesTab({ profiles, responses, loading, onRefresh }) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>All Responses <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)" }}>({filtered.length})</span></div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    <select style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 13, background: "#fff" }}
-                        value={filter} onChange={e => setFilter(e.target.value)}>
+                    <select style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 13, background: "#fff" }} value={filter} onChange={e => setFilter(e.target.value)}>
                         <option value="all">All responses</option>
                         <option value="submitted">Submitted only</option>
                         <option value="skipped">Skipped only</option>
@@ -798,15 +766,12 @@ function ResponsesTab({ profiles, responses, loading, onRefresh }) {
                     <button className="btn btn-outline" onClick={onRefresh}><Icon n="refresh" s={13} /> Refresh</button>
                 </div>
             </div>
-
             {loading ? (
                 <div className="loading-center"><div className="spinner" /> Loading responses…</div>
             ) : (
                 <div className="card">
                     <table className="tbl">
-                        <thead>
-                            <tr><th>User</th><th>Project</th><th>Task ID</th><th>Status</th><th>Time Spent</th><th>Earned</th><th>Submitted</th></tr>
-                        </thead>
+                        <thead><tr><th>User</th><th>Project</th><th>Task ID</th><th>Status</th><th>Time Spent</th><th>Earned</th><th>Submitted</th></tr></thead>
                         <tbody>
                             {filtered.slice(0, 100).map(r => (
                                 <tr key={r.id}>
@@ -822,12 +787,8 @@ function ResponsesTab({ profiles, responses, loading, onRefresh }) {
                                     <td style={{ color: "var(--muted)", fontSize: 11 }}>{fmtDate(r.created_at)}</td>
                                 </tr>
                             ))}
-                            {filtered.length === 0 && (
-                                <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No responses found.</td></tr>
-                            )}
-                            {filtered.length > 100 && (
-                                <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "12px", fontSize: 12 }}>Showing first 100 of {filtered.length} rows.</td></tr>
-                            )}
+                            {filtered.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No responses found.</td></tr>}
+                            {filtered.length > 100 && <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "12px", fontSize: 12 }}>Showing first 100 of {filtered.length} rows.</td></tr>}
                         </tbody>
                     </table>
                 </div>
@@ -944,32 +905,20 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
                     </div>
                 ))}
             </div>
-
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>
-                    All Notifications <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", marginLeft: 6 }}>({filtered.length})</span>
-                </div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>All Notifications <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", marginLeft: 6 }}>({filtered.length})</span></div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <select style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 12, background: "#fff" }}
-                        value={filter} onChange={e => setFilter(e.target.value)}>
-                        <option value="all">All statuses</option>
-                        <option value="unread">Unread only</option>
-                        <option value="read">Read only</option>
-                    </select>
-                    <select style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 12, background: "#fff" }}
-                        value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-                        <option value="all">All types</option>
-                        {types.map(t => <option key={t} value={t}>{notifTypeIcon(t)} {t.replace(/_/g, " ")}</option>)}
-                    </select>
-                    <select style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 12, background: "#fff", maxWidth: 180 }}
-                        value={userFilter} onChange={e => setUserFilter(e.target.value)}>
-                        <option value="all">All users</option>
-                        {usersWithNotifs.map(p => (
-                            <option key={p.id} value={p.id}>{[p.first_name, p.last_name].filter(Boolean).join(" ") || p.email}</option>
-                        ))}
-                    </select>
-                    <input className="search-input" style={{ width: 200 }} placeholder="Search title, message, user…"
-                        value={search} onChange={e => setSearch(e.target.value)} />
+                    {[
+                        [filter, setFilter, [["all", "All statuses"], ["unread", "Unread only"], ["read", "Read only"]]],
+                        [typeFilter, setTypeFilter, [["all", "All types"], ...types.map(t => [t, `${notifTypeIcon(t)} ${t.replace(/_/g, " ")}`])]],
+                        [userFilter, setUserFilter, [["all", "All users"], ...usersWithNotifs.map(p => [p.id, [p.first_name, p.last_name].filter(Boolean).join(" ") || p.email])]],
+                    ].map(([val, setter, opts], i) => (
+                        <select key={i} style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 12, background: "#fff", maxWidth: 180 }}
+                            value={val} onChange={e => setter(e.target.value)}>
+                            {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                    ))}
+                    <input className="search-input" style={{ width: 200 }} placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
                     <button className="btn btn-outline" onClick={() => {
                         setNLoading(true);
                         supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(500)
@@ -977,7 +926,6 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
                     }}><Icon n="refresh" s={13} /></button>
                 </div>
             </div>
-
             {nLoading || parentLoading ? (
                 <div className="loading-center"><div className="spinner" /> Loading notifications…</div>
             ) : (
@@ -986,13 +934,10 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
                         <div style={{ padding: "48px", textAlign: "center", color: "var(--muted)" }}>
                             <div style={{ fontSize: 32, marginBottom: 12 }}>🔔</div>
                             <div style={{ fontSize: 14, fontWeight: 600 }}>No notifications found</div>
-                            <div style={{ fontSize: 12, marginTop: 4 }}>Try adjusting your filters.</div>
                         </div>
                     ) : (
                         <table className="tbl">
-                            <thead>
-                                <tr><th>Recipient</th><th>Type</th><th>Title & Message</th><th>Status</th><th>Sent</th><th></th></tr>
-                            </thead>
+                            <thead><tr><th>Recipient</th><th>Type</th><th>Title & Message</th><th>Status</th><th>Sent</th><th></th></tr></thead>
                             <tbody>
                                 {filtered.map(n => (
                                     <tr key={n.id}>
@@ -1010,17 +955,9 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
                                             {n.message && <div style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.message}</div>}
                                             {n.link && <div style={{ fontSize: 10, color: "#888", marginTop: 2 }}>🔗 {n.link}</div>}
                                         </td>
-                                        <td>
-                                            {n.read
-                                                ? <span className="badge badge-grey"><Icon n="eye" s={9} /> Read</span>
-                                                : <span className="badge badge-blue">● Unread</span>}
-                                        </td>
+                                        <td>{n.read ? <span className="badge badge-grey"><Icon n="eye" s={9} /> Read</span> : <span className="badge badge-blue">● Unread</span>}</td>
                                         <td style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(n.created_at)}</td>
-                                        <td>
-                                            <button className="btn btn-danger btn-sm" disabled={deleting[n.id]} onClick={() => handleDelete(n.id)} style={{ fontSize: 11 }}>
-                                                {deleting[n.id] ? "…" : "Delete"}
-                                            </button>
-                                        </td>
+                                        <td><button className="btn btn-danger btn-sm" disabled={deleting[n.id]} onClick={() => handleDelete(n.id)} style={{ fontSize: 11 }}>{deleting[n.id] ? "…" : "Delete"}</button></td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -1069,7 +1006,7 @@ export default function AdminDashboard() {
 
     useEffect(() => { if (!checking && isAdmin) fetchAll(); }, [checking, isAdmin]);
 
-    const showToast = (msg) => { setToast(msg); };
+    const showToast = (msg) => setToast(msg);
 
     if (checking) return (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", gap: 12, color: "#666", fontFamily: "system-ui" }}>
@@ -1105,14 +1042,12 @@ export default function AdminDashboard() {
                         <div className="sb-section">Management</div>
                         {NAV.map(n => (
                             <button key={n.id} className={`sb-item${view === n.id ? " active" : ""}`} onClick={() => setView(n.id)}>
-                                <span className="sb-icon"><Icon n={n.icon} s={14} /></span>
-                                {n.label}
+                                <span className="sb-icon"><Icon n={n.icon} s={14} /></span>{n.label}
                             </button>
                         ))}
                         <div className="sb-section">Navigation</div>
                         <button className="sb-item" onClick={() => navigate("/dashboard")}>
-                            <span className="sb-icon"><Icon n="home" s={14} /></span>
-                            Back to App
+                            <span className="sb-icon"><Icon n="home" s={14} /></span>Back to App
                         </button>
                     </nav>
                 </aside>
