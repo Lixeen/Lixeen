@@ -292,123 +292,304 @@ function NotificationModal({ profile, onClose, onSent }) {
 }
 
 // ── Credentials Section (inside UserPanel) ───────────────────────────────────
+// ── REPLACE your existing CredentialsSection in AdminDashboard.jsx ───────────
+// Drop this component in wherever CredentialsSection currently lives.
+// No other changes needed to AdminDashboard.jsx.
+// ─────────────────────────────────────────────────────────────────────────────
+
 function CredentialsSection({ profile, onToast }) {
-    const [email, setEmail] = useState(profile.lixeen_email ?? "");
-    const [password, setPassword] = useState(profile.lixeen_password ?? "");
-    const [showPw, setShowPw] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [clearing, setClearing] = useState(false);
+  const [email, setEmail] = useState(profile.lixeen_email ?? "");
+  const [password, setPassword] = useState(profile.lixeen_password ?? "");
+  const [showPw, setShowPw] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
-    const hasCredentials = !!(profile.lixeen_email);
+  // ── Platform links state ──────────────────────────────────────────────────
+  // Each link: { name, url, logo, color, tag, desc }
+  const [links, setLinks] = useState(
+    Array.isArray(profile.lixeen_links) ? profile.lixeen_links : []
+  );
+  const [linkSaving, setLinkSaving] = useState(false);
+  const [newLink, setNewLink] = useState({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
+  const [addingLink, setAddingLink] = useState(false);
 
-    const handleSave = async () => {
-        if (!email.trim()) { onToast("❌ Email is required."); return; }
-        if (!password.trim()) { onToast("❌ Password is required."); return; }
-        setSaving(true);
-        const { error } = await supabase.from("profiles")
-            .update({ lixeen_email: email.trim(), lixeen_password: password.trim() })
-            .eq("id", profile.id);
-        setSaving(false);
-        if (error) { onToast("❌ Failed to save: " + error.message); return; }
-        // Update the local profile object so re-opening shows new values
-        profile.lixeen_email = email.trim();
-        profile.lixeen_password = password.trim();
-        onToast("✓ Credentials saved for " + (profile.first_name || profile.email));
-    };
+  const hasCredentials = !!profile.lixeen_email;
 
-    const handleClear = async () => {
-        if (!window.confirm("Clear credentials for this user?")) return;
-        setClearing(true);
-        const { error } = await supabase.from("profiles")
-            .update({ lixeen_email: null, lixeen_password: null })
-            .eq("id", profile.id);
-        setClearing(false);
-        if (error) { onToast("❌ Failed to clear: " + error.message); return; }
-        setEmail("");
-        setPassword("");
-        profile.lixeen_email = null;
-        profile.lixeen_password = null;
-        onToast("✓ Credentials cleared");
-    };
+  // ── Save email + password ─────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!email.trim()) { onToast("❌ Email is required."); return; }
+    if (!password.trim()) { onToast("❌ Password is required."); return; }
+    setSaving(true);
+    const { error } = await supabase.from("profiles")
+      .update({ lixeen_email: email.trim(), lixeen_password: password.trim() })
+      .eq("id", profile.id);
+    setSaving(false);
+    if (error) { onToast("❌ Failed to save: " + error.message); return; }
+    profile.lixeen_email = email.trim();
+    profile.lixeen_password = password.trim();
+    onToast("✓ Credentials saved for " + (profile.first_name || profile.email));
+  };
 
-    return (
-        <div className="creds-section">
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Icon n="key" s={14} />
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>Lixeen Credentials</div>
-                </div>
-                {hasCredentials
-                    ? <span className="badge badge-green">✓ Assigned</span>
-                    : <span className="badge badge-grey">Not assigned</span>
-                }
-            </div>
+  const handleClear = async () => {
+    if (!window.confirm("Clear credentials for this user?")) return;
+    setClearing(true);
+    const { error } = await supabase.from("profiles")
+      .update({ lixeen_email: null, lixeen_password: null })
+      .eq("id", profile.id);
+    setClearing(false);
+    if (error) { onToast("❌ Failed to clear: " + error.message); return; }
+    setEmail(""); setPassword("");
+    profile.lixeen_email = null; profile.lixeen_password = null;
+    onToast("✓ Credentials cleared");
+  };
 
-            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12, lineHeight: 1.5 }}>
-                These credentials are shown to the user in their Credentials tab. They use them to register on AI training platforms.
-            </div>
+  // ── Save links array to DB ────────────────────────────────────────────────
+  const saveLinks = async (updated) => {
+    setLinkSaving(true);
+    const { error } = await supabase.from("profiles")
+      .update({ lixeen_links: updated })
+      .eq("id", profile.id);
+    setLinkSaving(false);
+    if (error) { onToast("❌ Failed to save links: " + error.message); return false; }
+    profile.lixeen_links = updated;
+    return true;
+  };
 
-            {/* Email field */}
-            <div style={{ marginBottom: 10 }}>
-                <label className="field-label">Lixeen Email</label>
-                <input
-                    className="field-input"
-                    placeholder="e.g. john.doe@lixeen.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    style={{ background: "#fff" }}
-                />
-            </div>
+  const handleAddLink = async () => {
+    if (!newLink.name.trim() || !newLink.url.trim()) {
+      onToast("❌ Name and URL are required."); return;
+    }
+    const updated = [...links, { ...newLink, name: newLink.name.trim(), url: newLink.url.trim() }];
+    if (await saveLinks(updated)) {
+      setLinks(updated);
+      setNewLink({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
+      setAddingLink(false);
+      onToast("✓ Platform link added");
+    }
+  };
 
-            {/* Password field */}
-            <div style={{ marginBottom: 14 }}>
-                <label className="field-label">Password</label>
-                <div style={{ display: "flex", gap: 6 }}>
-                    <input
-                        className="field-input"
-                        type={showPw ? "text" : "password"}
-                        placeholder="Assign a password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        style={{ flex: 1, background: "#fff" }}
-                    />
-                    <button
-                        className="btn btn-outline btn-sm"
-                        onClick={() => setShowPw(s => !s)}
-                        title={showPw ? "Hide" : "Show"}
-                        style={{ flexShrink: 0, padding: "0 10px" }}
-                    >
-                        <Icon n={showPw ? "eyeOff" : "eye"} s={13} />
-                    </button>
-                </div>
-            </div>
+  const handleRemoveLink = async (idx) => {
+    const updated = links.filter((_, i) => i !== idx);
+    if (await saveLinks(updated)) {
+      setLinks(updated);
+      onToast("✓ Link removed");
+    }
+  };
 
-            {/* Actions */}
-            <div style={{ display: "flex", gap: 8 }}>
-                <button
-                    className="btn btn-black btn-sm"
-                    style={{ flex: 1, justifyContent: "center" }}
-                    onClick={handleSave}
-                    disabled={saving}
-                >
-                    <Icon n="key" s={12} />
-                    {saving ? "Saving…" : hasCredentials ? "Update Credentials" : "Assign Credentials"}
-                </button>
-                {hasCredentials && (
-                    <button
-                        className="btn btn-danger btn-sm"
-                        onClick={handleClear}
-                        disabled={clearing}
-                        title="Clear credentials"
-                    >
-                        <Icon n="trash" s={12} />
-                        {clearing ? "…" : "Clear"}
-                    </button>
-                )}
-            </div>
+  const setNL = (k, v) => setNewLink(f => ({ ...f, [k]: v }));
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+
+      {/* ── Section header ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+        </svg>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>Lixeen Credentials</div>
+        {hasCredentials
+          ? <span className="badge badge-green" style={{ marginLeft: "auto" }}>✓ Assigned</span>
+          : <span className="badge badge-grey" style={{ marginLeft: "auto" }}>Not assigned</span>
+        }
+      </div>
+
+      <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 16, marginBottom: 14 }}>
+        <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12, lineHeight: 1.5 }}>
+          These credentials are shown to the user in their Credentials tab.
         </div>
-    );
+
+        {/* Email */}
+        <div style={{ marginBottom: 10 }}>
+          <label className="field-label">Lixeen Email</label>
+          <input className="field-input" style={{ background: "#fff" }}
+            placeholder="e.g. john.doe@lixeen.com"
+            value={email} onChange={e => setEmail(e.target.value)} />
+        </div>
+
+        {/* Password */}
+        <div style={{ marginBottom: 14 }}>
+          <label className="field-label">Password</label>
+          <div style={{ display: "flex", gap: 6 }}>
+            <input
+              className="field-input"
+              type={showPw ? "text" : "password"}
+              style={{ flex: 1, background: "#fff" }}
+              placeholder="Assign a password"
+              value={password} onChange={e => setPassword(e.target.value)}
+            />
+            <button className="btn btn-outline btn-sm" onClick={() => setShowPw(s => !s)}
+              style={{ flexShrink: 0, padding: "0 10px" }} title={showPw ? "Hide" : "Show"}>
+              {showPw ? "🙈" : "👁️"}
+            </button>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-black btn-sm" style={{ flex: 1, justifyContent: "center" }}
+            onClick={handleSave} disabled={saving}>
+            {saving ? "Saving…" : hasCredentials ? "Update Credentials" : "Assign Credentials"}
+          </button>
+          {hasCredentials && (
+            <button className="btn btn-danger btn-sm" onClick={handleClear} disabled={clearing}
+              title="Clear credentials">
+              {clearing ? "…" : "🗑 Clear"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Platform Links ─────────────────────────────────────────────────── */}
+      <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>Platform Links</div>
+            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
+              Shown in the user's Credentials tab. Only assigned users see these.
+            </div>
+          </div>
+          <button className="btn btn-outline btn-sm" onClick={() => setAddingLink(a => !a)}>
+            {addingLink ? "Cancel" : "+ Add Link"}
+          </button>
+        </div>
+
+        {/* Existing links */}
+        {links.length > 0 && (
+          <div style={{ border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", overflow: "hidden", marginBottom: addingLink ? 14 : 0, background: "#fff" }}>
+            {links.map((l, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                borderBottom: i < links.length - 1 ? "1px solid var(--border)" : "none",
+                fontSize: 12,
+              }}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{l.logo || "🔗"}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, color: "#000", marginBottom: 1 }}>{l.name}</div>
+                  <div style={{ color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.url}</div>
+                </div>
+                {l.tag && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                    background: (l.color || "#333") + "18", color: l.color || "#333",
+                    border: `1px solid ${(l.color || "#333")}30`,
+                    borderRadius: "var(--r-pill)", flexShrink: 0,
+                  }}>{l.tag}</span>
+                )}
+                <button
+                  onClick={() => handleRemoveLink(i)}
+                  disabled={linkSaving}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: "#ccc", fontSize: 14, padding: "0 4px", flexShrink: 0,
+                    lineHeight: 1,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = "#c00"}
+                  onMouseLeave={e => e.currentTarget.style.color = "#ccc"}
+                  title="Remove link"
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {links.length === 0 && !addingLink && (
+          <div style={{ fontSize: 12, color: "var(--muted)", padding: "8px 0", fontStyle: "italic" }}>
+            No platform links assigned yet. Click "+ Add Link" to add one.
+          </div>
+        )}
+
+        {/* Add link form */}
+        {addingLink && (
+          <div style={{
+            background: "#fff", border: "1px solid var(--border2)",
+            borderRadius: "var(--r-sm)", padding: "14px", marginTop: links.length > 0 ? 0 : 0,
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>New Platform Link</div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+              <div>
+                <label className="field-label">Platform Name *</label>
+                <input className="field-input" style={{ background: "var(--surface2)" }}
+                  placeholder="e.g. Scale AI"
+                  value={newLink.name} onChange={e => setNL("name", e.target.value)} />
+              </div>
+              <div>
+                <label className="field-label">URL *</label>
+                <input className="field-input" style={{ background: "var(--surface2)" }}
+                  placeholder="https://scale.com/jobs"
+                  value={newLink.url} onChange={e => setNL("url", e.target.value)} />
+              </div>
+              <div>
+                <label className="field-label">Emoji / Logo</label>
+                <input className="field-input" style={{ background: "var(--surface2)" }}
+                  placeholder="⚖️"
+                  value={newLink.logo} onChange={e => setNL("logo", e.target.value)} />
+              </div>
+              <div>
+                <label className="field-label">Tag</label>
+                <input className="field-input" style={{ background: "var(--surface2)" }}
+                  placeholder="e.g. Top Platform"
+                  value={newLink.tag} onChange={e => setNL("tag", e.target.value)} />
+              </div>
+              <div>
+                <label className="field-label">Brand Color</label>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <input type="color" value={newLink.color}
+                    onChange={e => setNL("color", e.target.value)}
+                    style={{ width: 44, height: 36, padding: 2, border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", cursor: "pointer", background: "#fff" }} />
+                  <input className="field-input" style={{ background: "var(--surface2)", flex: 1 }}
+                    placeholder="#6C5CE7"
+                    value={newLink.color} onChange={e => setNL("color", e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="field-label">Description</label>
+                <input className="field-input" style={{ background: "var(--surface2)" }}
+                  placeholder="Short description…"
+                  value={newLink.desc} onChange={e => setNL("desc", e.target.value)} />
+              </div>
+            </div>
+
+            {/* Preview */}
+            {newLink.name && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px", background: "var(--surface2)",
+                border: "1px solid var(--border2)", borderRadius: "var(--r-sm)",
+                marginBottom: 12, fontSize: 12,
+              }}>
+                <span style={{ fontSize: 18 }}>{newLink.logo || "🔗"}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: "#000" }}>{newLink.name || "Platform Name"}</div>
+                  {newLink.desc && <div style={{ color: "var(--muted)", fontSize: 11 }}>{newLink.desc}</div>}
+                </div>
+                {newLink.tag && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                    background: newLink.color + "18", color: newLink.color,
+                    border: `1px solid ${newLink.color}30`,
+                    borderRadius: "var(--r-pill)",
+                  }}>{newLink.tag}</span>
+                )}
+                <span style={{ color: "#bbb" }}>→</span>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-black btn-sm" onClick={handleAddLink} disabled={linkSaving}
+                style={{ flex: 1, justifyContent: "center" }}>
+                {linkSaving ? "Saving…" : "Add Platform Link"}
+              </button>
+              <button className="btn btn-outline btn-sm" onClick={() => {
+                setAddingLink(false);
+                setNewLink({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
+              }}>Cancel</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ── User Detail Panel ────────────────────────────────────────────────────────

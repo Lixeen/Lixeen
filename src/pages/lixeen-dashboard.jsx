@@ -722,38 +722,63 @@ function VerificationView() {
 
 
 // ── Credentials View ──────────────────────────────────────────────────────────
+// ── REPLACE YOUR EXISTING CredentialsView with this ──────────────────────────
+// Also delete the AI_JOB_PLATFORMS constant entirely — it is no longer needed.
+//
+// The profile columns you need are:
+//   lixeen_email     TEXT
+//   lixeen_password  TEXT
+//   lixeen_links     JSONB   ← new  (array of {name, url, logo, tag, desc})
+//
+// See add_lixeen_links.sql for the migration.
+// ─────────────────────────────────────────────────────────────────────────────
+
 function CredentialsView() {
   const { user } = useAuth();
-  const [creds, setCreds] = useState({ lixeen_email: null, lixeen_password: null });
+  const [creds, setCreds] = useState({
+    lixeen_email: null,
+    lixeen_password: null,
+    lixeen_links: [],        // admin-assigned platform links
+  });
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState("");
 
+  // ── Initial fetch ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user?.id) return;
-    supabase.from("profiles")
-      .select("lixeen_email, lixeen_password")
+    supabase
+      .from("profiles")
+      .select("lixeen_email, lixeen_password, lixeen_links")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
         setCreds({
           lixeen_email: data?.lixeen_email ?? null,
           lixeen_password: data?.lixeen_password ?? null,
+          lixeen_links: data?.lixeen_links ?? [],
         });
         setLoading(false);
       });
   }, [user?.id]);
 
-  // Realtime: update credentials as soon as admin assigns them
+  // ── Realtime: update the moment admin assigns anything ────────────────────
   useEffect(() => {
     if (!user?.id) return;
-    const ch = supabase.channel("creds-" + user.id)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` }, (payload) => {
-        setCreds({
-          lixeen_email: payload.new?.lixeen_email ?? null,
-          lixeen_password: payload.new?.lixeen_password ?? null,
-        });
-      }).subscribe();
+    const ch = supabase
+      .channel("creds-" + user.id)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => {
+          setCreds({
+            lixeen_email: payload.new?.lixeen_email ?? null,
+            lixeen_password: payload.new?.lixeen_password ?? null,
+            lixeen_links: payload.new?.lixeen_links ?? [],
+          });
+        }
+      )
+      .subscribe();
     return () => supabase.removeChannel(ch);
   }, [user?.id]);
 
@@ -764,6 +789,7 @@ function CredentialsView() {
     });
   };
 
+  // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px", gap: 12, color: "var(--muted)" }}>
@@ -774,12 +800,14 @@ function CredentialsView() {
   }
 
   const hasCredentials = !!creds.lixeen_email;
+  const links = Array.isArray(creds.lixeen_links) ? creds.lixeen_links : [];
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto" }}>
 
-      {/* ── Lixeen Credentials Card ── */}
+      {/* ── Lixeen Credentials Card ───────────────────────────────────────── */}
       <div className="card" style={{ marginBottom: 20, overflow: "hidden" }}>
+
         {/* Dark header */}
         <div style={{ background: "#0a0a0a", padding: "24px 28px", display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{
@@ -789,13 +817,13 @@ function CredentialsView() {
           }}>🪪</div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 3 }}>Lixeen Credentials</div>
-            <div style={{ fontSize: 12, color: "#888" }}>Your assigned platform login for AI training platforms</div>
+            <div style={{ fontSize: 12, color: "#888" }}>Your assigned platform login details</div>
           </div>
         </div>
 
         <div style={{ padding: "24px 28px" }}>
           {!hasCredentials ? (
-            /* Pending state */
+            /* ── Pending state ── */
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <div style={{
                 width: 56, height: 56, borderRadius: "50%",
@@ -805,19 +833,21 @@ function CredentialsView() {
               }}>⏳</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#000", marginBottom: 8 }}>Credentials not yet assigned</div>
               <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.7, maxWidth: 340, margin: "0 auto 20px" }}>
-                An administrator will assign your Lixeen email and password shortly. They'll appear here automatically once ready.
+                An administrator will assign your login details shortly. They'll appear here automatically once ready.
               </div>
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 background: "#fffbeb", border: "1px solid #fde68a",
                 borderRadius: 8, padding: "10px 16px", fontSize: 13, color: "#92400e",
               }}>
-                <span>📧</span> Questions? <a href="mailto:support@lixeen.com" style={{ color: "#92400e", fontWeight: 600 }}>support@lixeen.com</a>
+                <span>📧</span> Questions?{" "}
+                <a href="mailto:support@lixeen.com" style={{ color: "#92400e", fontWeight: 600 }}>support@lixeen.com</a>
               </div>
             </div>
           ) : (
-            /* Credentials available */
+            /* ── Credentials available ── */
             <>
+              {/* Security notice */}
               <div style={{
                 fontSize: 12, color: "#555",
                 background: "#fffbeb", border: "1px solid #fde68a",
@@ -827,9 +857,9 @@ function CredentialsView() {
                 <span>🔒</span> Keep these credentials private. Do not share them with anyone outside Lixeen.
               </div>
 
-              {/* Email row */}
+              {/* Email */}
               <div style={{ marginBottom: 6 }}>
-                <div className="field-label">Lixeen Email Address</div>
+                <div className="field-label">Email Address</div>
                 <div className="cred-field-row">
                   <div className="cred-display">{creds.lixeen_email}</div>
                   <button
@@ -841,7 +871,7 @@ function CredentialsView() {
                 </div>
               </div>
 
-              {/* Password row */}
+              {/* Password */}
               {creds.lixeen_password && (
                 <div style={{ marginBottom: 6 }}>
                   <div className="field-label">Password</div>
@@ -854,7 +884,9 @@ function CredentialsView() {
                         fontSize: showPassword ? 14 : 16,
                       }}
                     >
-                      {showPassword ? creds.lixeen_password : "•".repeat(Math.min(creds.lixeen_password.length, 16))}
+                      {showPassword
+                        ? creds.lixeen_password
+                        : "•".repeat(Math.min(creds.lixeen_password.length, 16))}
                     </div>
                     <button
                       className="copy-btn"
@@ -874,95 +906,105 @@ function CredentialsView() {
                 </div>
               )}
 
-              <div style={{
-                marginTop: 18, padding: "12px 16px",
-                background: "var(--surface2)", border: "1px solid var(--border2)",
-                borderRadius: 8, fontSize: 12, color: "var(--muted)", lineHeight: 1.6,
-                display: "flex", alignItems: "flex-start", gap: 8,
-              }}>
-                <span style={{ flexShrink: 0 }}>💡</span>
-                Use these credentials when registering or logging into any of the AI training platforms listed below.
-              </div>
+              {/* Tip — only shown if the admin has also assigned links */}
+              {links.length > 0 && (
+                <div style={{
+                  marginTop: 18, padding: "12px 16px",
+                  background: "var(--surface2)", border: "1px solid var(--border2)",
+                  borderRadius: 8, fontSize: 12, color: "var(--muted)", lineHeight: 1.6,
+                  display: "flex", alignItems: "flex-start", gap: 8,
+                }}>
+                  <span style={{ flexShrink: 0 }}>💡</span>
+                  Use these credentials when registering on the platforms assigned to you below.
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
 
-      {/* ── AI Job Platforms Card ── */}
-      <div className="card">
-        <div className="card-head">
-          <div>
-            <div className="card-title">AI Training Job Platforms</div>
-            <div className="card-sub">Apply to these platforms to find AI training & annotation work</div>
+      {/* ── Assigned Platform Links (admin-controlled) ────────────────────── */}
+      {links.length > 0 && (
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <div className="card-title">Assigned Platforms</div>
+              <div className="card-sub">Platforms your admin has assigned to you</div>
+            </div>
+            <span style={{
+              fontSize: 11, fontWeight: 700,
+              background: "var(--surface2)", border: "1px solid var(--border2)",
+              borderRadius: "var(--r-pill)", padding: "4px 10px", color: "var(--muted)",
+              flexShrink: 0,
+            }}>
+              {links.length} platform{links.length !== 1 ? "s" : ""}
+            </span>
           </div>
-          <span style={{
-            fontSize: 11, fontWeight: 700,
-            background: "var(--surface2)", border: "1px solid var(--border2)",
-            borderRadius: "var(--r-pill)", padding: "4px 10px", color: "var(--muted)",
-            flexShrink: 0,
-          }}>
-            {AI_JOB_PLATFORMS.length} platforms
-          </span>
-        </div>
 
-        <div style={{ padding: "4px 0" }}>
-          {AI_JOB_PLATFORMS.map((platform, i) => (
-            <a
-              key={platform.name}
-              href={platform.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="platform-row"
-            >
-              {/* Logo */}
-              <div
-                className="platform-logo"
-                style={{
-                  background: platform.color + "18",
-                  border: `1.5px solid ${platform.color}35`,
-                }}
+          <div style={{ padding: "4px 0" }}>
+            {links.map((platform, i) => (
+              <a
+                key={i}
+                href={platform.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="platform-row"
               >
-                {platform.logo}
-              </div>
-
-              {/* Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#000" }}>{platform.name}</span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700,
-                    background: platform.color + "18",
-                    color: platform.color,
-                    border: `1px solid ${platform.color}30`,
-                    borderRadius: "var(--r-pill)",
-                    padding: "2px 8px",
-                    flexShrink: 0,
-                  }}>
-                    {platform.tag}
-                  </span>
+                {/* Logo / icon */}
+                <div
+                  className="platform-logo"
+                  style={{
+                    background: (platform.color || "#333") + "18",
+                    border: `1.5px solid ${(platform.color || "#333")}35`,
+                  }}
+                >
+                  {platform.logo || "🔗"}
                 </div>
-                <div style={{ fontSize: 12, color: "var(--muted)" }}>{platform.desc}</div>
-              </div>
 
-              {/* Arrow */}
-              <div style={{ flexShrink: 0, color: "#bbb", fontSize: 18, fontWeight: 300 }}>→</div>
-            </a>
-          ))}
-        </div>
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "#000" }}>{platform.name}</span>
+                    {platform.tag && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700,
+                        background: (platform.color || "#333") + "18",
+                        color: platform.color || "#333",
+                        border: `1px solid ${(platform.color || "#333")}30`,
+                        borderRadius: "var(--r-pill)",
+                        padding: "2px 8px",
+                        flexShrink: 0,
+                      }}>
+                        {platform.tag}
+                      </span>
+                    )}
+                  </div>
+                  {platform.desc && (
+                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{platform.desc}</div>
+                  )}
+                </div>
 
-        {/* Footer note */}
-        <div style={{
-          padding: "14px 22px",
-          borderTop: "1px solid var(--border)",
-          background: "var(--surface2)",
-          borderRadius: "0 0 var(--r-card) var(--r-card)",
-          fontSize: 12, color: "var(--muted)", lineHeight: 1.6,
-          display: "flex", alignItems: "center", gap: 8,
-        }}>
-          <span>ℹ️</span>
-          Lixeen is not affiliated with these platforms. Links are provided as a resource for AI trainers seeking additional work.
+                {/* Arrow */}
+                <div style={{ flexShrink: 0, color: "#bbb", fontSize: 18, fontWeight: 300 }}>→</div>
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* No links yet — show a gentle placeholder */}
+      {hasCredentials && links.length === 0 && (
+        <div className="card">
+          <div style={{ padding: "36px 28px", textAlign: "center" }}>
+            <div style={{ fontSize: 28, marginBottom: 12 }}>🔗</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#000", marginBottom: 6 }}>No platforms assigned yet</div>
+            <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.7 }}>
+              Your administrator will add platform links here when ready.
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
