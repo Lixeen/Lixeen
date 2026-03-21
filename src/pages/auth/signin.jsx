@@ -280,7 +280,7 @@ export default function SignIn() {
     setErrors(e);
     if (Object.keys(e).length) return;
 
-    
+
     const captchaToken = getToken();
     if (!captchaToken) {
       setErrors(prev => ({ ...prev, captcha: "Please complete the security check before continuing." }));

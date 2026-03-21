@@ -33,11 +33,29 @@ const G = `
 html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--text);}
 *{-webkit-font-smoothing:antialiased;}
 ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px;}
+
+/* ── Shell layout ── */
 .admin-shell{display:flex;height:100vh;overflow:hidden;}
-.admin-sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border2);display:flex;flex-direction:column;flex-shrink:0;}
-.admin-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.admin-topbar{height:var(--topbar);background:var(--surface);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0;}
-.admin-content{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── Sidebar ── */
+.admin-sidebar{
+  width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;flex-shrink:0;
+  transition:transform 0.25s ease;
+  z-index:150;
+}
+.admin-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.admin-topbar{
+  height:var(--topbar);background:var(--surface);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;
+}
+.admin-content{flex:1;overflow-y:auto;padding:16px;}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:140;
+}
+
 .sb-brand{padding:18px 20px 10px;font-size:13px;font-weight:800;letter-spacing:-0.02em;border-bottom:1px solid var(--border);}
 .sb-brand span{font-size:10px;font-weight:600;color:var(--muted);display:block;margin-top:2px;letter-spacing:0.04em;text-transform:uppercase;}
 .sb-nav{padding:10px 10px;flex:1;overflow-y:auto;}
@@ -46,33 +64,53 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
 .sb-item.active{background:#000;color:#fff;}
 .sb-item .sb-icon{font-size:15px;width:20px;text-align:center;}
 .sb-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#bbb;padding:14px 12px 6px;}
+
+/* Hamburger button */
+.hamburger{
+  display:none;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:var(--r-sm);
+  border:1.5px solid var(--border2);background:var(--surface);
+  cursor:pointer;flex-shrink:0;
+}
+.hamburger span{display:block;width:16px;height:2px;background:#000;border-radius:2px;transition:all 0.2s;}
+.hamburger span+span{margin-top:3px;}
+
 .card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-card);overflow:hidden;margin-bottom:16px;}
 .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .card-title{font-size:14px;font-weight:700;color:var(--text);}
 .card-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 .card-body{padding:20px;}
+
+/* ── Stat row ── */
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
 .stat-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-card);padding:18px 20px;}
 .stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px;}
 .stat-val{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-0.04em;line-height:1;}
 .stat-sub{font-size:11px;color:var(--muted);margin-top:5px;}
-.tbl{width:100%;border-collapse:collapse;}
-.tbl th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border2);text-align:left;background:var(--surface2);}
+
+/* ── Table wrapper for horizontal scroll ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tbl{width:100%;border-collapse:collapse;min-width:700px;}
+.tbl th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border2);text-align:left;background:var(--surface2);white-space:nowrap;}
 .tbl td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr:hover td{background:#fafafa;}
-.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);letter-spacing:0.03em;}
+
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);letter-spacing:0.03em;white-space:nowrap;}
 .badge-green{background:var(--green-bg);color:var(--green);border:1px solid #b8e0c8;}
 .badge-red{background:var(--red-bg);color:var(--red);border:1px solid #ffd5d5;}
 .badge-grey{background:var(--surface2);color:var(--muted);border:1px solid var(--border2);}
 .badge-blue{background:#eef4ff;color:#1a4a9a;border:1px solid #b8ccf0;}
 .badge-purple{background:#f5f0ff;color:#6b21a8;border:1px solid #d8b4fe;}
+
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-sm);font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:opacity 0.15s;}
 .btn-black{background:#000;color:#fff;} .btn-black:hover{opacity:0.8;}
 .btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--border2);} .btn-outline:hover{border-color:#999;background:var(--surface2);}
 .btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid #ffd5d5;} .btn-danger:hover{background:#ffe0e0;}
 .btn-sm{padding:5px 11px;font-size:12px;}
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ── Project grid ── */
 .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .proj-toggle{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r-sm);border:1.5px solid var(--border2);cursor:pointer;transition:all 0.15s;background:var(--surface);}
 .proj-toggle.on{border-color:#000;background:#f8f8f8;}
@@ -84,33 +122,125 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
 .proj-info{flex:1;min-width:0;}
 .proj-codename{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .proj-title{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
 .search-input{padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;color:var(--text);background:var(--surface);outline:none;width:240px;transition:border-color 0.15s;}
 .search-input:focus{border-color:#999;}
+
+/* ── Detail overlay / panel ── */
 .detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;display:flex;align-items:flex-start;justify-content:flex-end;}
-.detail-panel{width:520px;height:100vh;background:var(--surface);overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,0.12);}
+.detail-panel{width:520px;max-width:100vw;height:100vh;background:var(--surface);overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,0.12);}
 .detail-header{padding:20px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10;}
 .detail-body{padding:24px;}
-.toast{position:fixed;bottom:24px;right:24px;background:#000;color:#fff;font-size:13px;font-weight:600;padding:12px 18px;border-radius:var(--r-sm);z-index:999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:slideUp 0.2s ease;}
+
+.toast{position:fixed;bottom:24px;right:24px;left:24px;max-width:340px;margin:0 auto;background:#000;color:#fff;font-size:13px;font-weight:600;padding:12px 18px;border-radius:var(--r-sm);z-index:999;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:slideUp 0.2s ease;}
 @keyframes slideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spinner{width:18px;height:18px;border:2.5px solid var(--border2);border-top-color:#000;border-radius:50%;animation:spin 0.7s linear infinite;}
 .loading-center{display:flex;align-items:center;justify-content:center;gap:12px;padding:48px;color:var(--muted);font-size:13px;}
-.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;}
-.notif-modal{background:var(--surface);border-radius:14px;width:100%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,0.18);overflow:hidden;}
-.notif-modal-head{padding:20px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
-.notif-modal-body{padding:24px;display:flex;flex-direction:column;gap:14px;}
-.notif-modal-foot{padding:16px 24px;border-top:1px solid var(--border2);display:flex;gap:10px;justify-content:flex-end;}
+
+/* ── Notification modal ── */
+.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;}
+.notif-modal{background:var(--surface);border-radius:14px;width:100%;max-width:480px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.18);overflow:hidden;}
+.notif-modal-head{padding:20px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.notif-modal-body{padding:24px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;}
+.notif-modal-foot{padding:16px 24px;border-top:1px solid var(--border2);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;}
+
 .field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px;display:block;}
 .field-input{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color 0.15s;}
 .field-input:focus{border-color:#000;}
 .field-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;color:var(--text);background:#fff;outline:none;resize:vertical;min-height:80px;transition:border-color 0.15s;}
 .field-textarea:focus{border-color:#000;}
 .field-select{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:var(--sans);font-size:13px;color:var(--text);background:#fff;outline:none;}
-/* ── Credentials section ── */
+
 .creds-section{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:16px;margin-bottom:20px;}
 .creds-row{display:flex;gap:8px;align-items:center;margin-top:6px;}
 .creds-display{flex:1;padding:9px 12px;background:#fff;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;font-weight:600;color:#000;font-family:var(--sans);letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .creds-display.empty{color:var(--muted);font-weight:400;font-style:italic;}
+
+/* ── Topbar user email ── */
+.topbar-email{margin-left:auto;font-size:12px;color:var(--muted);}
+
+/* ── Mobile card list (alternative to table rows on small screens) ── */
+.mobile-user-card{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-card);
+  padding:14px 16px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px;
+}
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE BREAKPOINTS
+───────────────────────────────────────────── */
+
+/* Tablet (≤900px): 2-col stat grid, narrower sidebar */
+@media (max-width:900px){
+  .stat-row{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat-val{font-size:22px;}
+  .proj-grid{grid-template-columns:repeat(2,1fr);}
+  .admin-content{padding:14px;}
+  .search-input{width:180px;}
+}
+
+/* Mobile (≤680px): sidebar becomes drawer, tables scroll, full-width panel */
+@media (max-width:680px){
+  /* Sidebar drawer */
+  .admin-sidebar{
+    position:fixed;top:0;left:0;height:100vh;
+    transform:translateX(-100%);
+    box-shadow:4px 0 20px rgba(0,0,0,0.15);
+  }
+  .admin-sidebar.open{transform:translateX(0);}
+  .sidebar-overlay{display:block;}
+
+  /* Show hamburger */
+  .hamburger{display:flex;}
+
+  /* Hide email on very small screens */
+  .topbar-email{display:none;}
+
+  /* Full-width content */
+  .admin-content{padding:12px;}
+  .admin-topbar{padding:0 12px;gap:8px;}
+
+  /* 1-col stat grid */
+  .stat-row{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+  .stat-card{padding:12px 14px;}
+  .stat-val{font-size:20px;}
+  .stat-label{font-size:10px;}
+
+  /* Full-width detail panel */
+  .detail-panel{width:100vw;}
+  .detail-body{padding:16px;}
+  .detail-header{padding:14px 16px;}
+
+  /* Notification modal full-width */
+  .notif-modal{max-height:95vh;border-radius:12px;}
+  .notif-modal-body{padding:16px;}
+  .notif-modal-head{padding:14px 16px;}
+  .notif-modal-foot{padding:12px 16px;}
+
+  /* Project grid 1-col */
+  .proj-grid{grid-template-columns:1fr 1fr;}
+
+  /* Search inputs full width */
+  .search-input{width:100%;}
+
+  /* Tab header controls stack */
+  .tab-header{flex-direction:column;align-items:flex-start !important;gap:10px;}
+  .tab-controls{flex-wrap:wrap;width:100%;}
+  .tab-controls .search-input{flex:1;min-width:0;}
+
+  /* Toast anchored to bottom */
+  .toast{left:12px;right:12px;bottom:16px;max-width:none;}
+
+  /* Responses filters stack */
+  .resp-filters{flex-direction:column;align-items:flex-start !important;}
+}
+
+/* Extra small (≤400px) */
+@media (max-width:400px){
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .proj-grid{grid-template-columns:1fr;}
+  .btn{padding:6px 10px;font-size:12px;}
+}
 `;
 
 const Icon = ({ n, s = 14 }) => {
@@ -132,6 +262,7 @@ const Icon = ({ n, s = 14 }) => {
         key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></>,
         copy: <><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></>,
         trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></>,
+        menu: <><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>,
     };
     return (
         <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -254,7 +385,7 @@ function NotificationModal({ profile, onClose, onSent }) {
                     </div>
                     <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
                 </div>
-                <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "0 20px" }}>
+                <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "0 20px", flexShrink: 0 }}>
                     <button style={tabStyle("email")} onClick={() => { setTab("email"); setErr(""); }}>✉️ Email</button>
                     <button style={tabStyle("notif")} onClick={() => { setTab("notif"); setErr(""); }}>🔔 Notification</button>
                 </div>
@@ -291,308 +422,184 @@ function NotificationModal({ profile, onClose, onSent }) {
     );
 }
 
-// ── Credentials Section (inside UserPanel) ───────────────────────────────────
-// ── REPLACE your existing CredentialsSection in AdminDashboard.jsx ───────────
-// Drop this component in wherever CredentialsSection currently lives.
-// No other changes needed to AdminDashboard.jsx.
-// ─────────────────────────────────────────────────────────────────────────────
-
 function CredentialsSection({ profile, onToast }) {
-  const [email, setEmail] = useState(profile.lixeen_email ?? "");
-  const [password, setPassword] = useState(profile.lixeen_password ?? "");
-  const [showPw, setShowPw] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [clearing, setClearing] = useState(false);
+    const [email, setEmail] = useState(profile.lixeen_email ?? "");
+    const [password, setPassword] = useState(profile.lixeen_password ?? "");
+    const [showPw, setShowPw] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [clearing, setClearing] = useState(false);
+    const [links, setLinks] = useState(Array.isArray(profile.lixeen_links) ? profile.lixeen_links : []);
+    const [linkSaving, setLinkSaving] = useState(false);
+    const [newLink, setNewLink] = useState({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
+    const [addingLink, setAddingLink] = useState(false);
+    const hasCredentials = !!profile.lixeen_email;
 
-  // ── Platform links state ──────────────────────────────────────────────────
-  // Each link: { name, url, logo, color, tag, desc }
-  const [links, setLinks] = useState(
-    Array.isArray(profile.lixeen_links) ? profile.lixeen_links : []
-  );
-  const [linkSaving, setLinkSaving] = useState(false);
-  const [newLink, setNewLink] = useState({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
-  const [addingLink, setAddingLink] = useState(false);
+    const handleSave = async () => {
+        if (!email.trim()) { onToast("❌ Email is required."); return; }
+        if (!password.trim()) { onToast("❌ Password is required."); return; }
+        setSaving(true);
+        const { error } = await supabase.from("profiles").update({ lixeen_email: email.trim(), lixeen_password: password.trim() }).eq("id", profile.id);
+        setSaving(false);
+        if (error) { onToast("❌ Failed to save: " + error.message); return; }
+        profile.lixeen_email = email.trim(); profile.lixeen_password = password.trim();
+        onToast("✓ Credentials saved for " + (profile.first_name || profile.email));
+    };
 
-  const hasCredentials = !!profile.lixeen_email;
+    const handleClear = async () => {
+        if (!window.confirm("Clear credentials for this user?")) return;
+        setClearing(true);
+        const { error } = await supabase.from("profiles").update({ lixeen_email: null, lixeen_password: null }).eq("id", profile.id);
+        setClearing(false);
+        if (error) { onToast("❌ Failed to clear: " + error.message); return; }
+        setEmail(""); setPassword("");
+        profile.lixeen_email = null; profile.lixeen_password = null;
+        onToast("✓ Credentials cleared");
+    };
 
-  // ── Save email + password ─────────────────────────────────────────────────
-  const handleSave = async () => {
-    if (!email.trim()) { onToast("❌ Email is required."); return; }
-    if (!password.trim()) { onToast("❌ Password is required."); return; }
-    setSaving(true);
-    const { error } = await supabase.from("profiles")
-      .update({ lixeen_email: email.trim(), lixeen_password: password.trim() })
-      .eq("id", profile.id);
-    setSaving(false);
-    if (error) { onToast("❌ Failed to save: " + error.message); return; }
-    profile.lixeen_email = email.trim();
-    profile.lixeen_password = password.trim();
-    onToast("✓ Credentials saved for " + (profile.first_name || profile.email));
-  };
+    const saveLinks = async (updated) => {
+        setLinkSaving(true);
+        const { error } = await supabase.from("profiles").update({ lixeen_links: updated }).eq("id", profile.id);
+        setLinkSaving(false);
+        if (error) { onToast("❌ Failed to save links: " + error.message); return false; }
+        profile.lixeen_links = updated; return true;
+    };
 
-  const handleClear = async () => {
-    if (!window.confirm("Clear credentials for this user?")) return;
-    setClearing(true);
-    const { error } = await supabase.from("profiles")
-      .update({ lixeen_email: null, lixeen_password: null })
-      .eq("id", profile.id);
-    setClearing(false);
-    if (error) { onToast("❌ Failed to clear: " + error.message); return; }
-    setEmail(""); setPassword("");
-    profile.lixeen_email = null; profile.lixeen_password = null;
-    onToast("✓ Credentials cleared");
-  };
-
-  // ── Save links array to DB ────────────────────────────────────────────────
-  const saveLinks = async (updated) => {
-    setLinkSaving(true);
-    const { error } = await supabase.from("profiles")
-      .update({ lixeen_links: updated })
-      .eq("id", profile.id);
-    setLinkSaving(false);
-    if (error) { onToast("❌ Failed to save links: " + error.message); return false; }
-    profile.lixeen_links = updated;
-    return true;
-  };
-
-  const handleAddLink = async () => {
-    if (!newLink.name.trim() || !newLink.url.trim()) {
-      onToast("❌ Name and URL are required."); return;
-    }
-    const updated = [...links, { ...newLink, name: newLink.name.trim(), url: newLink.url.trim() }];
-    if (await saveLinks(updated)) {
-      setLinks(updated);
-      setNewLink({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
-      setAddingLink(false);
-      onToast("✓ Platform link added");
-    }
-  };
-
-  const handleRemoveLink = async (idx) => {
-    const updated = links.filter((_, i) => i !== idx);
-    if (await saveLinks(updated)) {
-      setLinks(updated);
-      onToast("✓ Link removed");
-    }
-  };
-
-  const setNL = (k, v) => setNewLink(f => ({ ...f, [k]: v }));
-
-  return (
-    <div style={{ marginBottom: 20 }}>
-
-      {/* ── Section header ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-        </svg>
-        <div style={{ fontSize: 13, fontWeight: 700 }}>Lixeen Credentials</div>
-        {hasCredentials
-          ? <span className="badge badge-green" style={{ marginLeft: "auto" }}>✓ Assigned</span>
-          : <span className="badge badge-grey" style={{ marginLeft: "auto" }}>Not assigned</span>
+    const handleAddLink = async () => {
+        if (!newLink.name.trim() || !newLink.url.trim()) { onToast("❌ Name and URL are required."); return; }
+        const updated = [...links, { ...newLink, name: newLink.name.trim(), url: newLink.url.trim() }];
+        if (await saveLinks(updated)) {
+            setLinks(updated);
+            setNewLink({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
+            setAddingLink(false);
+            onToast("✓ Platform link added");
         }
-      </div>
+    };
 
-      <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 16, marginBottom: 14 }}>
-        <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12, lineHeight: 1.5 }}>
-          These credentials are shown to the user in their Credentials tab.
-        </div>
+    const handleRemoveLink = async (idx) => {
+        const updated = links.filter((_, i) => i !== idx);
+        if (await saveLinks(updated)) { setLinks(updated); onToast("✓ Link removed"); }
+    };
 
-        {/* Email */}
-        <div style={{ marginBottom: 10 }}>
-          <label className="field-label">Lixeen Email</label>
-          <input className="field-input" style={{ background: "#fff" }}
-            placeholder="e.g. john.doe@lixeen.com"
-            value={email} onChange={e => setEmail(e.target.value)} />
-        </div>
+    const setNL = (k, v) => setNewLink(f => ({ ...f, [k]: v }));
 
-        {/* Password */}
-        <div style={{ marginBottom: 14 }}>
-          <label className="field-label">Password</label>
-          <div style={{ display: "flex", gap: 6 }}>
-            <input
-              className="field-input"
-              type={showPw ? "text" : "password"}
-              style={{ flex: 1, background: "#fff" }}
-              placeholder="Assign a password"
-              value={password} onChange={e => setPassword(e.target.value)}
-            />
-            <button className="btn btn-outline btn-sm" onClick={() => setShowPw(s => !s)}
-              style={{ flexShrink: 0, padding: "0 10px" }} title={showPw ? "Hide" : "Show"}>
-              {showPw ? "🙈" : "👁️"}
-            </button>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-black btn-sm" style={{ flex: 1, justifyContent: "center" }}
-            onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : hasCredentials ? "Update Credentials" : "Assign Credentials"}
-          </button>
-          {hasCredentials && (
-            <button className="btn btn-danger btn-sm" onClick={handleClear} disabled={clearing}
-              title="Clear credentials">
-              {clearing ? "…" : "🗑 Clear"}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── Platform Links ─────────────────────────────────────────────────── */}
-      <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>Platform Links</div>
-            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
-              Shown in the user's Credentials tab. Only assigned users see these.
+    return (
+        <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>Lixeen Credentials</div>
+                {hasCredentials
+                    ? <span className="badge badge-green" style={{ marginLeft: "auto" }}>✓ Assigned</span>
+                    : <span className="badge badge-grey" style={{ marginLeft: "auto" }}>Not assigned</span>}
             </div>
-          </div>
-          <button className="btn btn-outline btn-sm" onClick={() => setAddingLink(a => !a)}>
-            {addingLink ? "Cancel" : "+ Add Link"}
-          </button>
-        </div>
 
-        {/* Existing links */}
-        {links.length > 0 && (
-          <div style={{ border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", overflow: "hidden", marginBottom: addingLink ? 14 : 0, background: "#fff" }}>
-            {links.map((l, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-                borderBottom: i < links.length - 1 ? "1px solid var(--border)" : "none",
-                fontSize: 12,
-              }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{l.logo || "🔗"}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, color: "#000", marginBottom: 1 }}>{l.name}</div>
-                  <div style={{ color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.url}</div>
+            <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 16, marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12, lineHeight: 1.5 }}>
+                    These credentials are shown to the user in their Credentials tab.
                 </div>
-                {l.tag && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
-                    background: (l.color || "#333") + "18", color: l.color || "#333",
-                    border: `1px solid ${(l.color || "#333")}30`,
-                    borderRadius: "var(--r-pill)", flexShrink: 0,
-                  }}>{l.tag}</span>
+                <div style={{ marginBottom: 10 }}>
+                    <label className="field-label">Lixeen Email</label>
+                    <input className="field-input" style={{ background: "#fff" }} placeholder="e.g. john.doe@lixeen.com" value={email} onChange={e => setEmail(e.target.value)} />
+                </div>
+                <div style={{ marginBottom: 14 }}>
+                    <label className="field-label">Password</label>
+                    <div style={{ display: "flex", gap: 6 }}>
+                        <input className="field-input" type={showPw ? "text" : "password"} style={{ flex: 1, background: "#fff" }} placeholder="Assign a password" value={password} onChange={e => setPassword(e.target.value)} />
+                        <button className="btn btn-outline btn-sm" onClick={() => setShowPw(s => !s)} style={{ flexShrink: 0, padding: "0 10px" }} title={showPw ? "Hide" : "Show"}>
+                            {showPw ? "🙈" : "👁️"}
+                        </button>
+                    </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                    <button className="btn btn-black btn-sm" style={{ flex: 1, justifyContent: "center" }} onClick={handleSave} disabled={saving}>
+                        {saving ? "Saving…" : hasCredentials ? "Update Credentials" : "Assign Credentials"}
+                    </button>
+                    {hasCredentials && (
+                        <button className="btn btn-danger btn-sm" onClick={handleClear} disabled={clearing} title="Clear credentials">
+                            {clearing ? "…" : "🗑 Clear"}
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)" }}>Platform Links</div>
+                        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>Shown in the user's Credentials tab.</div>
+                    </div>
+                    <button className="btn btn-outline btn-sm" onClick={() => setAddingLink(a => !a)}>{addingLink ? "Cancel" : "+ Add Link"}</button>
+                </div>
+                {links.length > 0 && (
+                    <div style={{ border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", overflow: "hidden", marginBottom: addingLink ? 14 : 0, background: "#fff" }}>
+                        {links.map((l, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: i < links.length - 1 ? "1px solid var(--border)" : "none", fontSize: 12 }}>
+                                <span style={{ fontSize: 16, flexShrink: 0 }}>{l.logo || "🔗"}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: 700, color: "#000", marginBottom: 1 }}>{l.name}</div>
+                                    <div style={{ color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.url}</div>
+                                </div>
+                                {l.tag && (
+                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", background: (l.color || "#333") + "18", color: l.color || "#333", border: `1px solid ${(l.color || "#333")}30`, borderRadius: "var(--r-pill)", flexShrink: 0 }}>{l.tag}</span>
+                                )}
+                                <button onClick={() => handleRemoveLink(i)} disabled={linkSaving}
+                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc", fontSize: 14, padding: "0 4px", flexShrink: 0, lineHeight: 1 }}
+                                    onMouseEnter={e => e.currentTarget.style.color = "#c00"}
+                                    onMouseLeave={e => e.currentTarget.style.color = "#ccc"}
+                                    title="Remove link">✕</button>
+                            </div>
+                        ))}
+                    </div>
                 )}
-                <button
-                  onClick={() => handleRemoveLink(i)}
-                  disabled={linkSaving}
-                  style={{
-                    background: "none", border: "none", cursor: "pointer",
-                    color: "#ccc", fontSize: 14, padding: "0 4px", flexShrink: 0,
-                    lineHeight: 1,
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = "#c00"}
-                  onMouseLeave={e => e.currentTarget.style.color = "#ccc"}
-                  title="Remove link"
-                >✕</button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {links.length === 0 && !addingLink && (
-          <div style={{ fontSize: 12, color: "var(--muted)", padding: "8px 0", fontStyle: "italic" }}>
-            No platform links assigned yet. Click "+ Add Link" to add one.
-          </div>
-        )}
-
-        {/* Add link form */}
-        {addingLink && (
-          <div style={{
-            background: "#fff", border: "1px solid var(--border2)",
-            borderRadius: "var(--r-sm)", padding: "14px", marginTop: links.length > 0 ? 0 : 0,
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>New Platform Link</div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <div>
-                <label className="field-label">Platform Name *</label>
-                <input className="field-input" style={{ background: "var(--surface2)" }}
-                  placeholder="e.g. Scale AI"
-                  value={newLink.name} onChange={e => setNL("name", e.target.value)} />
-              </div>
-              <div>
-                <label className="field-label">URL *</label>
-                <input className="field-input" style={{ background: "var(--surface2)" }}
-                  placeholder="https://scale.com/jobs"
-                  value={newLink.url} onChange={e => setNL("url", e.target.value)} />
-              </div>
-              <div>
-                <label className="field-label">Emoji / Logo</label>
-                <input className="field-input" style={{ background: "var(--surface2)" }}
-                  placeholder="⚖️"
-                  value={newLink.logo} onChange={e => setNL("logo", e.target.value)} />
-              </div>
-              <div>
-                <label className="field-label">Tag</label>
-                <input className="field-input" style={{ background: "var(--surface2)" }}
-                  placeholder="e.g. Top Platform"
-                  value={newLink.tag} onChange={e => setNL("tag", e.target.value)} />
-              </div>
-              <div>
-                <label className="field-label">Brand Color</label>
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <input type="color" value={newLink.color}
-                    onChange={e => setNL("color", e.target.value)}
-                    style={{ width: 44, height: 36, padding: 2, border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", cursor: "pointer", background: "#fff" }} />
-                  <input className="field-input" style={{ background: "var(--surface2)", flex: 1 }}
-                    placeholder="#6C5CE7"
-                    value={newLink.color} onChange={e => setNL("color", e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <label className="field-label">Description</label>
-                <input className="field-input" style={{ background: "var(--surface2)" }}
-                  placeholder="Short description…"
-                  value={newLink.desc} onChange={e => setNL("desc", e.target.value)} />
-              </div>
-            </div>
-
-            {/* Preview */}
-            {newLink.name && (
-              <div style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 12px", background: "var(--surface2)",
-                border: "1px solid var(--border2)", borderRadius: "var(--r-sm)",
-                marginBottom: 12, fontSize: 12,
-              }}>
-                <span style={{ fontSize: 18 }}>{newLink.logo || "🔗"}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: "#000" }}>{newLink.name || "Platform Name"}</div>
-                  {newLink.desc && <div style={{ color: "var(--muted)", fontSize: 11 }}>{newLink.desc}</div>}
-                </div>
-                {newLink.tag && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
-                    background: newLink.color + "18", color: newLink.color,
-                    border: `1px solid ${newLink.color}30`,
-                    borderRadius: "var(--r-pill)",
-                  }}>{newLink.tag}</span>
+                {links.length === 0 && !addingLink && (
+                    <div style={{ fontSize: 12, color: "var(--muted)", padding: "8px 0", fontStyle: "italic" }}>
+                        No platform links assigned yet.
+                    </div>
                 )}
-                <span style={{ color: "#bbb" }}>→</span>
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn btn-black btn-sm" onClick={handleAddLink} disabled={linkSaving}
-                style={{ flex: 1, justifyContent: "center" }}>
-                {linkSaving ? "Saving…" : "Add Platform Link"}
-              </button>
-              <button className="btn btn-outline btn-sm" onClick={() => {
-                setAddingLink(false);
-                setNewLink({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" });
-              }}>Cancel</button>
+                {addingLink && (
+                    <div style={{ background: "#fff", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: 14, marginTop: links.length > 0 ? 0 : 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>New Platform Link</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                            <div><label className="field-label">Platform Name *</label><input className="field-input" style={{ background: "var(--surface2)" }} placeholder="e.g. Scale AI" value={newLink.name} onChange={e => setNL("name", e.target.value)} /></div>
+                            <div><label className="field-label">URL *</label><input className="field-input" style={{ background: "var(--surface2)" }} placeholder="https://scale.com/jobs" value={newLink.url} onChange={e => setNL("url", e.target.value)} /></div>
+                            <div><label className="field-label">Emoji / Logo</label><input className="field-input" style={{ background: "var(--surface2)" }} placeholder="⚖️" value={newLink.logo} onChange={e => setNL("logo", e.target.value)} /></div>
+                            <div><label className="field-label">Tag</label><input className="field-input" style={{ background: "var(--surface2)" }} placeholder="e.g. Top Platform" value={newLink.tag} onChange={e => setNL("tag", e.target.value)} /></div>
+                            <div>
+                                <label className="field-label">Brand Color</label>
+                                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                    <input type="color" value={newLink.color} onChange={e => setNL("color", e.target.value)} style={{ width: 44, height: 36, padding: 2, border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", cursor: "pointer", background: "#fff" }} />
+                                    <input className="field-input" style={{ background: "var(--surface2)", flex: 1 }} placeholder="#6C5CE7" value={newLink.color} onChange={e => setNL("color", e.target.value)} />
+                                </div>
+                            </div>
+                            <div><label className="field-label">Description</label><input className="field-input" style={{ background: "var(--surface2)" }} placeholder="Short description…" value={newLink.desc} onChange={e => setNL("desc", e.target.value)} /></div>
+                        </div>
+                        {newLink.name && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", marginBottom: 12, fontSize: 12 }}>
+                                <span style={{ fontSize: 18 }}>{newLink.logo || "🔗"}</span>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 700, color: "#000" }}>{newLink.name || "Platform Name"}</div>
+                                    {newLink.desc && <div style={{ color: "var(--muted)", fontSize: 11 }}>{newLink.desc}</div>}
+                                </div>
+                                {newLink.tag && (
+                                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", background: newLink.color + "18", color: newLink.color, border: `1px solid ${newLink.color}30`, borderRadius: "var(--r-pill)" }}>{newLink.tag}</span>
+                                )}
+                                <span style={{ color: "#bbb" }}>→</span>
+                            </div>
+                        )}
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <button className="btn btn-black btn-sm" onClick={handleAddLink} disabled={linkSaving} style={{ flex: 1, justifyContent: "center" }}>
+                                {linkSaving ? "Saving…" : "Add Platform Link"}
+                            </button>
+                            <button className="btn btn-outline btn-sm" onClick={() => { setAddingLink(false); setNewLink({ name: "", url: "", logo: "", color: "#333333", tag: "", desc: "" }); }}>Cancel</button>
+                        </div>
+                    </div>
+                )}
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+        </div>
+    );
 }
 
-// ── User Detail Panel ────────────────────────────────────────────────────────
 function UserPanel({ profile, responses, onClose, onSave, onToast }) {
     const [selected, setSelected] = useState(new Set(profile.available_projects ?? []));
     const [saving, setSaving] = useState(false);
@@ -606,11 +613,7 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
     const [verifyLinkSaved, setVerifyLinkSaved] = useState(false);
 
     const toggle = (table) => {
-        setSelected(prev => {
-            const next = new Set(prev);
-            next.has(table) ? next.delete(table) : next.add(table);
-            return next;
-        });
+        setSelected(prev => { const next = new Set(prev); next.has(table) ? next.delete(table) : next.add(table); return next; });
     };
 
     const handleSave = async () => {
@@ -622,20 +625,8 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
         const newlyRevoked = ALL_PROJECTS.filter(p => !selected.has(p.table) && prevProjects.has(p.table));
         const { error } = await supabase.from("profiles").update({ available_projects: nextProjects }).eq("id", profile.id);
         if (!error) {
-            await Promise.all(newlyGranted.map(p => sendEmailAndNotification({
-                userId: profile.id, to: profile.email, userName, type: "project_assigned",
-                title: `You've been assigned to ${p.codename}`,
-                message: `You now have access to ${p.codename} — ${p.title}. Log in to your dashboard to start tasking.`,
-                link: "/dashboard#tasks/available",
-                emailExtras: { projectCodename: p.codename, projectTitle: p.title },
-            })));
-            await Promise.all(newlyRevoked.map(p => sendEmailAndNotification({
-                userId: profile.id, to: profile.email, userName, type: "project_revoked",
-                title: `Access to ${p.codename} has been removed`,
-                message: `Your access to ${p.codename} has been removed by an administrator.`,
-                link: "/dashboard#tasks/available",
-                emailExtras: { projectCodename: p.codename },
-            })));
+            await Promise.all(newlyGranted.map(p => sendEmailAndNotification({ userId: profile.id, to: profile.email, userName, type: "project_assigned", title: `You've been assigned to ${p.codename}`, message: `You now have access to ${p.codename} — ${p.title}. Log in to your dashboard to start tasking.`, link: "/dashboard#tasks/available", emailExtras: { projectCodename: p.codename, projectTitle: p.title } })));
+            await Promise.all(newlyRevoked.map(p => sendEmailAndNotification({ userId: profile.id, to: profile.email, userName, type: "project_revoked", title: `Access to ${p.codename} has been removed`, message: `Your access to ${p.codename} has been removed by an administrator.`, link: "/dashboard#tasks/available", emailExtras: { projectCodename: p.codename } })));
         }
         setSaving(false);
         onSave(profile.id, nextProjects, error);
@@ -661,14 +652,7 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
         if (!error) {
             setLocked(newLocked);
             const userName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email;
-            await sendEmailAndNotification({
-                userId: profile.id, to: profile.email, userName, type: "general",
-                title: newLocked ? "Action Required: Submit Tax Documents" : "Projects Unlocked",
-                message: newLocked
-                    ? "Your projects page has been locked. Please submit your tax documents to regain access."
-                    : "Your projects page has been unlocked. You can now access your projects.",
-                link: "/dashboard#tasks",
-            });
+            await sendEmailAndNotification({ userId: profile.id, to: profile.email, userName, type: "general", title: newLocked ? "Action Required: Submit Tax Documents" : "Projects Unlocked", message: newLocked ? "Your projects page has been locked. Please submit your tax documents to regain access." : "Your projects page has been unlocked. You can now access your projects.", link: "/dashboard#tasks" });
         }
         setLockSaving(false);
     };
@@ -682,22 +666,21 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
             <div className="detail-overlay" onClick={onClose}>
                 <div className="detail-panel" onClick={e => e.stopPropagation()}>
                     <div className="detail-header">
-                        <div>
-                            <div style={{ fontSize: 15, fontWeight: 700 }}>{name}</div>
-                            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</div>
+                            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {profile.email}{profile.state ? ` · 📍 ${profile.state}` : ""}
                             </div>
                         </div>
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 8, flexShrink: 0, marginLeft: 8 }}>
                             <button className="btn btn-outline btn-sm" onClick={() => setShowNotif(true)}>
-                                <Icon n="bell" s={13} /> Message
+                                <Icon n="bell" s={13} /><span style={{ display: "none" }} className="btn-label"> Message</span>
                             </button>
                             <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
                         </div>
                     </div>
 
                     <div className="detail-body">
-                        {/* Stats */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
                             {[
                                 { label: "Responses", val: userResponses.filter(r => !r.skipped).length },
@@ -711,7 +694,6 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
                             ))}
                         </div>
 
-                        {/* Recent Submissions */}
                         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Recent Submissions</div>
                         {userResponses.length === 0 ? (
                             <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20, padding: "12px 0" }}>No submissions yet.</div>
@@ -719,36 +701,29 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
                             <div style={{ border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", overflow: "hidden", marginBottom: 24 }}>
                                 {userResponses.slice(0, 6).map((r, i) => (
                                     <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderBottom: i < Math.min(userResponses.length, 6) - 1 ? "1px solid var(--border)" : "none", fontSize: 12 }}>
-                                        <div style={{ flex: 1, fontWeight: 600 }}>
+                                        <div style={{ flex: 1, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                             {r.task_table ? r.task_table.replace(/^tasks_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "—"}
                                         </div>
-                                        <div style={{ color: "var(--muted)" }}>{r.time_spent_secs ? `${Math.floor(r.time_spent_secs / 60)}m ${r.time_spent_secs % 60}s` : "—"}</div>
+                                        <div style={{ color: "var(--muted)", flexShrink: 0 }}>{r.time_spent_secs ? `${Math.floor(r.time_spent_secs / 60)}m ${r.time_spent_secs % 60}s` : "—"}</div>
                                         <span className={`badge ${r.skipped ? "badge-grey" : "badge-green"}`}>{r.skipped ? "Skipped" : "Submitted"}</span>
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* ── Lixeen Credentials ── */}
                         <CredentialsSection profile={profile} onToast={onToast} />
 
-                        {/* Lock Toggle */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: locked ? "#fff5f5" : "#f0faf4", border: `1px solid ${locked ? "#ffd5d5" : "#b8e0c8"}`, borderRadius: "var(--r-sm)", marginBottom: 20 }}>
-                            <div>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: locked ? "var(--red)" : "var(--green)" }}>
-                                    {locked ? "🔒 Projects Locked" : "🔓 Projects Unlocked"}
-                                </div>
-                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>
-                                    {locked ? "User must submit tax documents to access projects." : "User can access their assigned projects."}
-                                </div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: locked ? "#fff5f5" : "#f0faf4", border: `1px solid ${locked ? "#ffd5d5" : "#b8e0c8"}`, borderRadius: "var(--r-sm)", marginBottom: 20, gap: 12 }}>
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: locked ? "var(--red)" : "var(--green)" }}>{locked ? "🔒 Projects Locked" : "🔓 Projects Unlocked"}</div>
+                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>{locked ? "User must submit tax documents to access projects." : "User can access their assigned projects."}</div>
                             </div>
-                            <button className={`btn btn-sm ${locked ? "btn-outline" : "btn-danger"}`} onClick={handleToggleLock} disabled={lockSaving} style={{ minWidth: 90 }}>
+                            <button className={`btn btn-sm ${locked ? "btn-outline" : "btn-danger"}`} onClick={handleToggleLock} disabled={lockSaving} style={{ minWidth: 80, flexShrink: 0 }}>
                                 {lockSaving ? "Saving…" : locked ? "Unlock" : "Lock Projects"}
                             </button>
                         </div>
 
-                        {/* Verification Link */}
-                        <div style={{ marginBottom: 20, padding: "16px", background: "var(--surface2)", borderRadius: "var(--r-sm)", border: "1px solid var(--border2)" }}>
+                        <div style={{ marginBottom: 20, padding: 16, background: "var(--surface2)", borderRadius: "var(--r-sm)", border: "1px solid var(--border2)" }}>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                                 <div style={{ fontSize: 13, fontWeight: 700 }}>Identity Verification</div>
                                 {isVerified ? <span className="badge badge-green">✓ Verified</span> : <span className="badge badge-grey">Not Verified</span>}
@@ -757,9 +732,9 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
                                 Paste the user's unique verification URL. The user will see a button linking to this URL in their dashboard.
                             </div>
                             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                                <input className="field-input" style={{ flex: 1 }} placeholder="https://verify.example.com/session/abc123…" value={verifyLink} onChange={e => { setVerifyLink(e.target.value); setVerifyLinkSaved(false); }} />
-                                <button className="btn btn-black btn-sm" onClick={handleSaveVerifyLink} disabled={verifyLinkSaving} style={{ whiteSpace: "nowrap" }}>
-                                    {verifyLinkSaving ? "…" : verifyLinkSaved ? "✓ Saved" : "Save Link"}
+                                <input className="field-input" style={{ flex: 1, minWidth: 0 }} placeholder="https://verify.example.com/session/abc123…" value={verifyLink} onChange={e => { setVerifyLink(e.target.value); setVerifyLinkSaved(false); }} />
+                                <button className="btn btn-black btn-sm" onClick={handleSaveVerifyLink} disabled={verifyLinkSaving} style={{ whiteSpace: "nowrap", flexShrink: 0 }}>
+                                    {verifyLinkSaving ? "…" : verifyLinkSaved ? "✓ Saved" : "Save"}
                                 </button>
                             </div>
                             <button className="btn btn-sm" onClick={handleToggleVerified} style={{ background: isVerified ? "var(--red-bg)" : "var(--green-bg)", color: isVerified ? "var(--red)" : "var(--green)", border: `1px solid ${isVerified ? "#ffd5d5" : "#b8e0c8"}`, fontSize: 11 }}>
@@ -767,9 +742,8 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
                             </button>
                         </div>
 
-                        {/* Project Access */}
                         <div style={{ marginBottom: 20 }}>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
                                 <div style={{ fontSize: 13, fontWeight: 700 }}>Project Access</div>
                                 <div style={{ display: "flex", gap: 8 }}>
                                     <button className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())}>Clear all</button>
@@ -806,9 +780,7 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
 
             {showNotif && (
                 <NotificationModal profile={profile} onClose={() => setShowNotif(false)} onSent={() => {
-                    setShowNotif(false);
-                    setNotifSent(true);
-                    setTimeout(() => setNotifSent(false), 3000);
+                    setShowNotif(false); setNotifSent(true); setTimeout(() => setNotifSent(false), 3000);
                 }} />
             )}
         </>
@@ -835,11 +807,11 @@ function UsersTab({ profiles, responses, loading, onRefresh, onToast }) {
 
     return (
         <>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <div className="tab-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>All Users <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)" }}>({filtered.length})</span></div>
-                <div style={{ display: "flex", gap: 10 }}>
+                <div className="tab-controls" style={{ display: "flex", gap: 10 }}>
                     <input className="search-input" placeholder="Search by name or email…" value={search} onChange={e => setSearch(e.target.value)} />
-                    <button className="btn btn-outline" onClick={onRefresh}><Icon n="refresh" s={13} /> Refresh</button>
+                    <button className="btn btn-outline" onClick={onRefresh}><Icon n="refresh" s={13} /></button>
                 </div>
             </div>
 
@@ -847,58 +819,55 @@ function UsersTab({ profiles, responses, loading, onRefresh, onToast }) {
                 <div className="loading-center"><div className="spinner" /> Loading users…</div>
             ) : (
                 <div className="card">
-                    <table className="tbl">
-                        <thead>
-                            <tr>
-                                <th>User</th><th>Email</th><th>State</th><th>Email Confirmed</th>
-                                <th>ID Verified</th><th>Projects Locked</th><th>Credentials</th>
-                                <th>Projects</th><th>Submissions</th><th>Earned</th><th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map(p => {
-                                const userResp = responses.filter(r => r.user_id === p.id);
-                                const earned = userResp.filter(r => !r.skipped).reduce((s, r) => s + ((r.time_spent_secs ?? 0) / 3600) * 25, 0);
-                                const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "—";
-                                const projCount = (p.available_projects ?? []).length;
-                                return (
-                                    <tr key={p.id}>
-                                        <td>
-                                            <div style={{ fontWeight: 600 }}>{name}</div>
-                                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontFamily: "monospace" }}>{p.id.slice(0, 8)}…</div>
-                                        </td>
-                                        <td style={{ color: "var(--muted)" }}>{p.email ?? "—"}</td>
-                                        <td>{p.state ? <span style={{ fontSize: 12 }}>📍 {p.state}</span> : <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>}</td>
-                                        <td>{p.email_confirmed ? <span className="badge badge-green">✓ Confirmed</span> : <span className="badge badge-red">Unconfirmed</span>}</td>
-                                        <td>{p.is_verified ? <span className="badge badge-green">✓ Verified</span> : <span className="badge badge-grey">Not verified</span>}</td>
-                                        <td>{p.projects_locked ? <span className="badge badge-red">🔒 Locked</span> : <span className="badge badge-green">🔓 Open</span>}</td>
-                                        <td>
-                                            {p.lixeen_email
-                                                ? <span className="badge badge-purple">🪪 Assigned</span>
-                                                : <span className="badge badge-grey">None</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            {projCount === 0 ? <span className="badge badge-red">No access</span>
-                                                : projCount === ALL_PROJECTS.length ? <span className="badge badge-green">All ({projCount})</span>
-                                                    : <span className="badge badge-blue">{projCount} project{projCount !== 1 ? "s" : ""}</span>}
-                                        </td>
-                                        <td>{userResp.filter(r => !r.skipped).length}</td>
-                                        <td style={{ fontWeight: 700 }}>${earned.toFixed(2)}</td>
-                                        <td>
-                                            <div style={{ display: "flex", gap: 6 }}>
-                                                <button className="btn btn-outline btn-sm" onClick={() => setNotifying(p)}><Icon n="bell" s={11} /></button>
-                                                <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>Manage <Icon n="chevR" s={11} /></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            {filtered.length === 0 && (
-                                <tr><td colSpan={11} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No users found.</td></tr>
-                            )}
-                        </tbody>
-                    </table>
+                    <div className="tbl-wrap">
+                        <table className="tbl">
+                            <thead>
+                                <tr>
+                                    <th>User</th><th>Email</th><th>State</th><th>Email Confirmed</th>
+                                    <th>ID Verified</th><th>Projects Locked</th><th>Credentials</th>
+                                    <th>Projects</th><th>Submissions</th><th>Earned</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map(p => {
+                                    const userResp = responses.filter(r => r.user_id === p.id);
+                                    const earned = userResp.filter(r => !r.skipped).reduce((s, r) => s + ((r.time_spent_secs ?? 0) / 3600) * 25, 0);
+                                    const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "—";
+                                    const projCount = (p.available_projects ?? []).length;
+                                    return (
+                                        <tr key={p.id}>
+                                            <td>
+                                                <div style={{ fontWeight: 600 }}>{name}</div>
+                                                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontFamily: "monospace" }}>{p.id.slice(0, 8)}…</div>
+                                            </td>
+                                            <td style={{ color: "var(--muted)" }}>{p.email ?? "—"}</td>
+                                            <td>{p.state ? <span style={{ fontSize: 12 }}>📍 {p.state}</span> : <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>}</td>
+                                            <td>{p.email_confirmed ? <span className="badge badge-green">✓ Confirmed</span> : <span className="badge badge-red">Unconfirmed</span>}</td>
+                                            <td>{p.is_verified ? <span className="badge badge-green">✓ Verified</span> : <span className="badge badge-grey">Not verified</span>}</td>
+                                            <td>{p.projects_locked ? <span className="badge badge-red">🔒 Locked</span> : <span className="badge badge-green">🔓 Open</span>}</td>
+                                            <td>{p.lixeen_email ? <span className="badge badge-purple">🪪 Assigned</span> : <span className="badge badge-grey">None</span>}</td>
+                                            <td>
+                                                {projCount === 0 ? <span className="badge badge-red">No access</span>
+                                                    : projCount === ALL_PROJECTS.length ? <span className="badge badge-green">All ({projCount})</span>
+                                                        : <span className="badge badge-blue">{projCount} project{projCount !== 1 ? "s" : ""}</span>}
+                                            </td>
+                                            <td>{userResp.filter(r => !r.skipped).length}</td>
+                                            <td style={{ fontWeight: 700 }}>${earned.toFixed(2)}</td>
+                                            <td>
+                                                <div style={{ display: "flex", gap: 6 }}>
+                                                    <button className="btn btn-outline btn-sm" onClick={() => setNotifying(p)}><Icon n="bell" s={11} /></button>
+                                                    <button className="btn btn-outline btn-sm" onClick={() => setSelected(p)}>Manage <Icon n="chevR" s={11} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {filtered.length === 0 && (
+                                    <tr><td colSpan={11} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No users found.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
@@ -935,43 +904,45 @@ function ResponsesTab({ profiles, responses, loading, onRefresh }) {
 
     return (
         <>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <div className="tab-header resp-filters" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>All Responses <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)" }}>({filtered.length})</span></div>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div className="tab-controls" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                     <select style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 13, background: "#fff" }} value={filter} onChange={e => setFilter(e.target.value)}>
                         <option value="all">All responses</option>
                         <option value="submitted">Submitted only</option>
                         <option value="skipped">Skipped only</option>
                     </select>
                     <input className="search-input" placeholder="Search user or project…" value={search} onChange={e => setSearch(e.target.value)} />
-                    <button className="btn btn-outline" onClick={onRefresh}><Icon n="refresh" s={13} /> Refresh</button>
+                    <button className="btn btn-outline" onClick={onRefresh}><Icon n="refresh" s={13} /></button>
                 </div>
             </div>
             {loading ? (
                 <div className="loading-center"><div className="spinner" /> Loading responses…</div>
             ) : (
                 <div className="card">
-                    <table className="tbl">
-                        <thead><tr><th>User</th><th>Project</th><th>Task ID</th><th>Status</th><th>Time Spent</th><th>Earned</th><th>Submitted</th></tr></thead>
-                        <tbody>
-                            {filtered.slice(0, 100).map(r => (
-                                <tr key={r.id}>
-                                    <td style={{ fontWeight: 600 }}>{getName(r.user_id)}</td>
-                                    <td>
-                                        <div style={{ fontWeight: 600, fontSize: 12 }}>{ALL_PROJECTS.find(p => p.table === r.task_table)?.codename ?? "—"}</div>
-                                        <div style={{ fontSize: 11, color: "var(--muted)" }}>{r.task_table?.replace(/^tasks_/, "").replace(/_/g, " ") ?? "—"}</div>
-                                    </td>
-                                    <td style={{ fontFamily: "monospace", fontSize: 11, color: "var(--muted)" }}>{r.source_task_id ? String(r.source_task_id).slice(0, 8) + "…" : "—"}</td>
-                                    <td><span className={`badge ${r.skipped ? "badge-grey" : "badge-green"}`}>{r.skipped ? "Skipped" : "Submitted"}</span></td>
-                                    <td style={{ color: "var(--muted)" }}>{r.time_spent_secs ? `${Math.floor(r.time_spent_secs / 60)}m ${r.time_spent_secs % 60}s` : "—"}</td>
-                                    <td style={{ fontWeight: 700 }}>{r.skipped ? "—" : "$" + ((r.time_spent_secs ?? 0) / 3600 * 25).toFixed(2)}</td>
-                                    <td style={{ color: "var(--muted)", fontSize: 11 }}>{fmtDate(r.created_at)}</td>
-                                </tr>
-                            ))}
-                            {filtered.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No responses found.</td></tr>}
-                            {filtered.length > 100 && <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "12px", fontSize: 12 }}>Showing first 100 of {filtered.length} rows.</td></tr>}
-                        </tbody>
-                    </table>
+                    <div className="tbl-wrap">
+                        <table className="tbl">
+                            <thead><tr><th>User</th><th>Project</th><th>Task ID</th><th>Status</th><th>Time Spent</th><th>Earned</th><th>Submitted</th></tr></thead>
+                            <tbody>
+                                {filtered.slice(0, 100).map(r => (
+                                    <tr key={r.id}>
+                                        <td style={{ fontWeight: 600 }}>{getName(r.user_id)}</td>
+                                        <td>
+                                            <div style={{ fontWeight: 600, fontSize: 12 }}>{ALL_PROJECTS.find(p => p.table === r.task_table)?.codename ?? "—"}</div>
+                                            <div style={{ fontSize: 11, color: "var(--muted)" }}>{r.task_table?.replace(/^tasks_/, "").replace(/_/g, " ") ?? "—"}</div>
+                                        </td>
+                                        <td style={{ fontFamily: "monospace", fontSize: 11, color: "var(--muted)" }}>{r.source_task_id ? String(r.source_task_id).slice(0, 8) + "…" : "—"}</td>
+                                        <td><span className={`badge ${r.skipped ? "badge-grey" : "badge-green"}`}>{r.skipped ? "Skipped" : "Submitted"}</span></td>
+                                        <td style={{ color: "var(--muted)" }}>{r.time_spent_secs ? `${Math.floor(r.time_spent_secs / 60)}m ${r.time_spent_secs % 60}s` : "—"}</td>
+                                        <td style={{ fontWeight: 700 }}>{r.skipped ? "—" : "$" + ((r.time_spent_secs ?? 0) / 3600 * 25).toFixed(2)}</td>
+                                        <td style={{ color: "var(--muted)", fontSize: 11 }}>{fmtDate(r.created_at)}</td>
+                                    </tr>
+                                ))}
+                                {filtered.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "32px" }}>No responses found.</td></tr>}
+                                {filtered.length > 100 && <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: "12px", fontSize: 12 }}>Showing first 100 of {filtered.length} rows.</td></tr>}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </>
@@ -983,7 +954,7 @@ function ProjectsTab({ profiles, responses }) {
     return (
         <>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Project Overview</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
                 {ALL_PROJECTS.map(p => {
                     const projResp = responses.filter(r => r.task_table === p.table && !r.skipped);
                     const usersCount = new Set(projResp.map(r => r.user_id)).size;
@@ -1072,7 +1043,7 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
 
     return (
         <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 20 }}>
+            <div className="stat-row" style={{ marginBottom: 20 }}>
                 {[
                     { label: "Total Sent", val: notifs.length, sub: "all time" },
                     { label: "Unread", val: totalUnread, sub: "awaiting user" },
@@ -1086,20 +1057,20 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
                     </div>
                 ))}
             </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+            <div className="tab-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>All Notifications <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", marginLeft: 6 }}>({filtered.length})</span></div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <div className="tab-controls" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     {[
                         [filter, setFilter, [["all", "All statuses"], ["unread", "Unread only"], ["read", "Read only"]]],
                         [typeFilter, setTypeFilter, [["all", "All types"], ...types.map(t => [t, `${notifTypeIcon(t)} ${t.replace(/_/g, " ")}`])]],
                         [userFilter, setUserFilter, [["all", "All users"], ...usersWithNotifs.map(p => [p.id, [p.first_name, p.last_name].filter(Boolean).join(" ") || p.email])]],
                     ].map(([val, setter, opts], i) => (
-                        <select key={i} style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 12, background: "#fff", maxWidth: 180 }}
+                        <select key={i} style={{ padding: "7px 10px", border: "1.5px solid var(--border2)", borderRadius: "var(--r-sm)", fontFamily: "var(--sans)", fontSize: 12, background: "#fff", maxWidth: 160 }}
                             value={val} onChange={e => setter(e.target.value)}>
                             {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
                     ))}
-                    <input className="search-input" style={{ width: 200 }} placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
+                    <input className="search-input" style={{ width: 160 }} placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
                     <button className="btn btn-outline" onClick={() => {
                         setNLoading(true);
                         supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(500)
@@ -1117,32 +1088,34 @@ function NotificationsTab({ profiles, loading: parentLoading, onToast }) {
                             <div style={{ fontSize: 14, fontWeight: 600 }}>No notifications found</div>
                         </div>
                     ) : (
-                        <table className="tbl">
-                            <thead><tr><th>Recipient</th><th>Type</th><th>Title & Message</th><th>Status</th><th>Sent</th><th></th></tr></thead>
-                            <tbody>
-                                {filtered.map(n => (
-                                    <tr key={n.id}>
-                                        <td>
-                                            <div style={{ fontWeight: 600, fontSize: 13 }}>{getName(n.user_id)}</div>
-                                            <div style={{ fontSize: 10, color: "var(--muted)", fontFamily: "monospace", marginTop: 2 }}>{n.user_id?.slice(0, 8)}…</div>
-                                        </td>
-                                        <td>
-                                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-pill)", padding: "3px 10px", whiteSpace: "nowrap" }}>
-                                                {notifTypeIcon(n.type)} {n.type?.replace(/_/g, " ") ?? "general"}
-                                            </span>
-                                        </td>
-                                        <td style={{ maxWidth: 280 }}>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: "#000", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.title}</div>
-                                            {n.message && <div style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.message}</div>}
-                                            {n.link && <div style={{ fontSize: 10, color: "#888", marginTop: 2 }}>🔗 {n.link}</div>}
-                                        </td>
-                                        <td>{n.read ? <span className="badge badge-grey"><Icon n="eye" s={9} /> Read</span> : <span className="badge badge-blue">● Unread</span>}</td>
-                                        <td style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(n.created_at)}</td>
-                                        <td><button className="btn btn-danger btn-sm" disabled={deleting[n.id]} onClick={() => handleDelete(n.id)} style={{ fontSize: 11 }}>{deleting[n.id] ? "…" : "Delete"}</button></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <div className="tbl-wrap">
+                            <table className="tbl">
+                                <thead><tr><th>Recipient</th><th>Type</th><th>Title & Message</th><th>Status</th><th>Sent</th><th></th></tr></thead>
+                                <tbody>
+                                    {filtered.map(n => (
+                                        <tr key={n.id}>
+                                            <td>
+                                                <div style={{ fontWeight: 600, fontSize: 13 }}>{getName(n.user_id)}</div>
+                                                <div style={{ fontSize: 10, color: "var(--muted)", fontFamily: "monospace", marginTop: 2 }}>{n.user_id?.slice(0, 8)}…</div>
+                                            </td>
+                                            <td>
+                                                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-pill)", padding: "3px 10px", whiteSpace: "nowrap" }}>
+                                                    {notifTypeIcon(n.type)} {n.type?.replace(/_/g, " ") ?? "general"}
+                                                </span>
+                                            </td>
+                                            <td style={{ maxWidth: 240 }}>
+                                                <div style={{ fontSize: 13, fontWeight: 600, color: "#000", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.title}</div>
+                                                {n.message && <div style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.message}</div>}
+                                                {n.link && <div style={{ fontSize: 10, color: "#888", marginTop: 2 }}>🔗 {n.link}</div>}
+                                            </td>
+                                            <td>{n.read ? <span className="badge badge-grey"><Icon n="eye" s={9} /> Read</span> : <span className="badge badge-blue">● Unread</span>}</td>
+                                            <td style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>{fmtDate(n.created_at)}</td>
+                                            <td><button className="btn btn-danger btn-sm" disabled={deleting[n.id]} onClick={() => handleDelete(n.id)} style={{ fontSize: 11 }}>{deleting[n.id] ? "…" : "Delete"}</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             )}
@@ -1161,6 +1134,7 @@ export default function AdminDashboard() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [checking, setChecking] = useState(true);
     const [toast, setToast] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const totalEarned = responses.filter(r => !r.skipped).reduce((s, r) => s + ((r.time_spent_secs ?? 0) / 3600 * 25), 0);
 
@@ -1189,6 +1163,9 @@ export default function AdminDashboard() {
 
     const showToast = (msg) => setToast(msg);
 
+    // Close sidebar when navigating on mobile
+    const handleNav = (id) => { setView(id); setSidebarOpen(false); };
+
     if (checking) return (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", gap: 12, color: "#666", fontFamily: "system-ui" }}>
             <div className="spinner" /> Checking access…
@@ -1196,7 +1173,7 @@ export default function AdminDashboard() {
     );
 
     if (!isAdmin) return (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 16, fontFamily: "system-ui" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 16, fontFamily: "system-ui", padding: 24, textAlign: "center" }}>
             <div style={{ fontSize: 48 }}>🔒</div>
             <div style={{ fontSize: 18, fontWeight: 700 }}>Admin access required</div>
             <div style={{ fontSize: 14, color: "#666" }}>Your account does not have admin privileges.</div>
@@ -1217,12 +1194,15 @@ export default function AdminDashboard() {
         <>
             <style>{G}</style>
             <div className="admin-shell">
-                <aside className="admin-sidebar">
+                {/* Sidebar overlay (mobile) */}
+                {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
+                <aside className={`admin-sidebar${sidebarOpen ? " open" : ""}`}>
                     <div className="sb-brand">⚡ Admin Panel<span>Tasker Platform</span></div>
                     <nav className="sb-nav">
                         <div className="sb-section">Management</div>
                         {NAV.map(n => (
-                            <button key={n.id} className={`sb-item${view === n.id ? " active" : ""}`} onClick={() => setView(n.id)}>
+                            <button key={n.id} className={`sb-item${view === n.id ? " active" : ""}`} onClick={() => handleNav(n.id)}>
                                 <span className="sb-icon"><Icon n={n.icon} s={14} /></span>{n.label}
                             </button>
                         ))}
@@ -1235,8 +1215,13 @@ export default function AdminDashboard() {
 
                 <div className="admin-main">
                     <header className="admin-topbar">
+                        {/* Hamburger */}
+                        <button className="hamburger" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle menu">
+                            <span /><span /><span />
+                        </button>
+
                         <div style={{ fontWeight: 700, fontSize: 14 }}>{NAV.find(n => n.id === view)?.label}</div>
-                        <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--muted)" }}>
+                        <div className="topbar-email" style={{ marginLeft: "auto", fontSize: 12, color: "var(--muted)" }}>
                             Signed in as <strong>{user?.email}</strong>
                         </div>
                     </header>
