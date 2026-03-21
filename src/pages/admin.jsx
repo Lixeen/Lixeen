@@ -600,6 +600,142 @@ function CredentialsSection({ profile, onToast }) {
     );
 }
 
+// ── Tax Info Modal ───────────────────────────────────────────────────────────
+function TaxInfoModal({ profile, onClose }) {
+    const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.email || "—";
+
+    const fmtDate = (d) => {
+        if (!d) return "—";
+        const dt = new Date(d);
+        return isNaN(dt) ? d : dt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    };
+
+    const maskSSN = (ssn) => {
+        if (!ssn) return "—";
+        const clean = ssn.replace(/\D/g, "");
+        if (clean.length >= 4) return "•••-••-" + clean.slice(-4);
+        return "•••-••-" + clean;
+    };
+
+    const Row = ({ label, value, mask }) => (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted)", minWidth: 140, flexShrink: 0, paddingTop: 1 }}>{label}</div>
+            <div style={{ fontSize: 13, color: value ? "var(--text)" : "var(--muted)", fontStyle: value ? "normal" : "italic", fontWeight: value ? 500 : 400, wordBreak: "break-all" }}>
+                {value || "Not provided"}
+            </div>
+        </div>
+    );
+
+    const Section = ({ title, icon, children }) => (
+        <div style={{ marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 15 }}>{icon}</span>
+                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em", color: "#000" }}>{title}</div>
+            </div>
+            <div style={{ background: "var(--surface2)", border: "1px solid var(--border2)", borderRadius: "var(--r-sm)", padding: "0 16px" }}>
+                {children}
+            </div>
+        </div>
+    );
+
+    // Build full address string
+    const addressParts = [profile.tax_street, profile.tax_city, profile.tax_state, profile.tax_zip, profile.tax_country].filter(Boolean);
+    const fullAddress = addressParts.length ? addressParts.join(", ") : null;
+
+    const hasAnyTax = profile.tax_legal_name || profile.tax_ssn || profile.tax_dob || profile.tax_street;
+    const hasAnyBank = profile.bank_holder_name || profile.bank_name || profile.bank_account_number || profile.bank_routing_number;
+    const hasPaypal = profile.paypal_email || profile.paypal_holder_name;
+
+    return (
+        <div className="notif-overlay" onClick={onClose}>
+            <div className="notif-modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+                <div className="notif-modal-head">
+                    <div>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>🧾 Tax & Payment Info</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{name} · {profile.email}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {profile.tax_docs_submitted
+                            ? <span className="badge badge-green">✓ Docs Submitted</span>
+                            : <span className="badge badge-red">Docs Pending</span>
+                        }
+                        <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
+                    </div>
+                </div>
+
+                <div className="notif-modal-body" style={{ gap: 0 }}>
+                    {!hasAnyTax && !hasAnyBank && !hasPaypal ? (
+                        <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)" }}>
+                            <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
+                            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>No tax or payment info on file</div>
+                            <div style={{ fontSize: 12 }}>This user hasn't submitted their tax or payout details yet.</div>
+                        </div>
+                    ) : (<>
+
+                        {/* ── Tax Identity ── */}
+                        <Section title="Tax Identity" icon="🪪">
+                            <Row label="Legal Name" value={profile.tax_legal_name} />
+                            <Row label="SSN / TIN" value={maskSSN(profile.tax_ssn)} />
+                            <Row label="Date of Birth" value={fmtDate(profile.tax_dob)} />
+                            <div style={{ borderBottom: "none" }}>
+                                <Row label="Address" value={fullAddress} />
+                            </div>
+                        </Section>
+
+                        {/* ── Preferred Payout ── */}
+                        <Section title="Payout Preference" icon="💳">
+                            <div style={{ borderBottom: "none" }}>
+                                <Row
+                                    label="Method"
+                                    value={profile.preferred_payout
+                                        ? profile.preferred_payout === "bank" ? "🏦 Bank Transfer" : "🅿️ PayPal"
+                                        : null}
+                                />
+                            </div>
+                        </Section>
+
+                        {/* ── Bank Details ── */}
+                        {hasAnyBank && (
+                            <Section title="Bank Account" icon="🏦">
+                                <Row label="Account Holder" value={profile.bank_holder_name} />
+                                <Row label="Bank Name" value={profile.bank_name} />
+                                <Row label="Account Type" value={profile.bank_account_type
+                                    ? profile.bank_account_type.charAt(0).toUpperCase() + profile.bank_account_type.slice(1)
+                                    : null} />
+                                <Row label="Routing Number" value={profile.bank_routing_number} />
+                                <div style={{ borderBottom: "none" }}>
+                                    <Row label="Account Number" value={profile.bank_account_number
+                                        ? "•••• " + profile.bank_account_number.slice(-4)
+                                        : null} />
+                                </div>
+                            </Section>
+                        )}
+
+                        {/* ── PayPal ── */}
+                        {hasPaypal && (
+                            <Section title="PayPal" icon="🅿️">
+                                <Row label="PayPal Email" value={profile.paypal_email} />
+                                <Row label="Account Name" value={profile.paypal_holder_name} />
+                                <div style={{ borderBottom: "none" }}>
+                                    <Row label="Currency" value={profile.paypal_currency} />
+                                </div>
+                            </Section>
+                        )}
+
+                    </>)}
+                </div>
+
+                <div className="notif-modal-foot" style={{ justifyContent: "flex-start", gap: 10 }}>
+                    <div style={{ fontSize: 11, color: "var(--muted)", flex: 1 }}>
+                        ⚠ Sensitive data — handle with care. Do not share or screenshot.
+                    </div>
+                    <button className="btn btn-outline" onClick={onClose}>Close</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function UserPanel({ profile, responses, onClose, onSave, onToast }) {
     const [selected, setSelected] = useState(new Set(profile.available_projects ?? []));
     const [saving, setSaving] = useState(false);
@@ -611,6 +747,7 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
     const [isVerified, setIsVerified] = useState(!!profile.is_verified);
     const [verifyLinkSaving, setVerifyLinkSaving] = useState(false);
     const [verifyLinkSaved, setVerifyLinkSaved] = useState(false);
+    const [showTax, setShowTax] = useState(false);
 
     const toggle = (table) => {
         setSelected(prev => { const next = new Set(prev); next.has(table) ? next.delete(table) : next.add(table); return next; });
@@ -673,8 +810,11 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
                             </div>
                         </div>
                         <div style={{ display: "flex", gap: 8, flexShrink: 0, marginLeft: 8 }}>
+                            <button className="btn btn-outline btn-sm" onClick={() => setShowTax(true)} title="Tax & Payment Info">
+                                🧾 Tax Info
+                            </button>
                             <button className="btn btn-outline btn-sm" onClick={() => setShowNotif(true)}>
-                                <Icon n="bell" s={13} /><span style={{ display: "none" }} className="btn-label"> Message</span>
+                                <Icon n="bell" s={13} />
                             </button>
                             <button className="btn btn-outline btn-sm" onClick={onClose}><Icon n="x" s={13} /></button>
                         </div>
@@ -783,6 +923,7 @@ function UserPanel({ profile, responses, onClose, onSave, onToast }) {
                     setShowNotif(false); setNotifSent(true); setTimeout(() => setNotifSent(false), 3000);
                 }} />
             )}
+            {showTax && <TaxInfoModal profile={profile} onClose={() => setShowTax(false)} />}
         </>
     );
 }
